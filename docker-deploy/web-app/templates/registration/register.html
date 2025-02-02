@@ -1,4 +1,6 @@
-{% extends 'registration/base.html' %} {% block content %}
+{% extends 'registration/base.html' %}
+
+{% block content %}
 <section>
   <div class="container">
     <div class="row">
@@ -8,24 +10,45 @@
     </div>
     <div class="row">
       <div class="col-md-6 offset-md-3 mt-3">
+        
+        {% if form.errors %}
+        <div class="alert alert-danger">
+          <ul>
+            {% for field, errors in form.errors.items %}
+              {% for error in errors %}
+                <li><strong>{{ field|capfirst }}</strong>: {{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
         <form method="post" action="{% url 'register' %}">
-          {% csrf_token %} {% for field in form %}
+          {% csrf_token %}
+
           <div class="form-group">
-            {{ field.label_tag }}
-            <input
-              type="{% if 'password' in field.label_tag %}password{% else %}text{% endif %}"
-              name="{{ field.html_name }}"
-              class="form-control"
-              maxlength="{% if 'username' in field.label_tag %}150{% endif %}"
-              id="{{ field.id_for_label }}"
-              required
-            />
+            <label for="username">Username:</label>
+            <input type="text" name="username" class="form-control" required>
           </div>
-          {% if field.errors %} {% for error in field.errors %}
-          <p style="font-size: 13px;">
-            {{ error|escape }}
-          </p>
-          {% endfor %} {% endif %} {% endfor %}
+
+          <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password1">Password:</label>
+            <input type="password" name="password1" class="form-control" required>
+            <small class="form-text text-muted">
+              Password must be at least 8 characters long and cannot be entirely numeric.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="password2">Confirm Password:</label>
+            <input type="password" name="password2" class="form-control" required>
+          </div>
+
           <button type="submit" class="btn btn-primary mt-2">Register</button>
         </form>
       </div>

@@ -17,12 +17,12 @@
       <div class="col-md-6 offset-md-3 mt-3">
         <form method="post">
           {% csrf_token %}
+
+          <h3>Driver Information</h3>
           <label for="license_number">License Number:</label>
           <input type="text" name="license_number" class="form-control" required>
 
-          <label for="car_model">Car Model:</label>
-          <input type="text" name="car_model" class="form-control" required>
-
+          <h3>Vehicle Information</h3>
           <label for="vehicle_type">Vehicle Type:</label>
           <input type="text" name="vehicle_type" class="form-control" required>
 
@@ -31,9 +31,6 @@
 
           <label for="max_passengers">Max Passengers:</label>
           <input type="number" name="max_passengers" class="form-control" required>
-
-          <label for="phone_number">Phone Number:</label>
-          <input type="text" name="phone_number" class="form-control" required>
 
           <label for="additional_info">Additional Information (optional):</label>
           <textarea name="additional_info" class="form-control"></textarea>
