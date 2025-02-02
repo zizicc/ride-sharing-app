@@ -25,4 +25,11 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('register/', views.register, name='register'),
     path('admin/', admin.site.urls),
+    path('driver/', views.driver_search, name = 'driverSearch'),
+    path('driver/search', views.driver_search, name = 'driverSearch'),
+    path('driver/ongoing', views.driver_ongoing, name = 'driverongoing'),
+    path('driver/my_drive', views.driver_myDrive, name = 'driver_myDrive'),
+    path('driver/profile', views.driver_profile, name = 'driverProfile'),
+
 ]
+

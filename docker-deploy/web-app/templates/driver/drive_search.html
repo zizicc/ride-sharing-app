@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 头部导航 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #fff;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .header button {
+            background-color: white;
+            color: black;
+            border: 1px solid #ccc;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            width: auto;
+            min-width: 80px;
+            white-space: nowrap;
+        }
+
+        .header button:hover {
+            background-color: #ddd;
+        }
+
+        /* 选项卡菜单 */
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            background-color: #f1f1f1;
+            padding: 10px 0;
+            border-radius: 8px;
+            margin: 10px;
+        }
+
+        .menu .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+            transition: background-color 0.3s;
+        }
+
+        .menu .tab.active {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        /* 内容区域 */
+        .content {
+            display: none;  /* 默认隐藏所有内容 */
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 60%;
+            margin: 20px auto;
+        }
+
+        .content.active {
+            display: block;  /* 只有 active 的内容显示 */
+        }
+
+        /* 表单样式 */
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            width: 180px;
+            text-align: right;
+            margin-right: 10px;
+        }
+
+        .form-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Open Trips 标题 */
+        .open-trips {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            /* width: 60%; */
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 头部 -->
+    <div class="header">
+        <h1>Hi, driver zi!</h1>
+        <button>Log Out</button>
+    </div>
+
+    <!-- 切换栏 -->
+    <div class="menu">
+        <div class="tab active" data-target="searchRides">Search Open Rides</div>
+        <div class="tab" data-target="ongoingRides">Ongoing</div>
+        <div class="tab" data-target="myDrive">My Drive</div>
+        <div class="tab" data-target="myDriverProfile">My Driver Profile</div>
+    </div>
+    
+    <!-- 搜索行程表单 (默认显示) -->
+    <div class="content active" id="searchRides">
+        <form action="#" method="POST">
+            <div class="form-group">
+                <label for="startLocation">Address</label>
+                <input type="text" id="startLocation" name="startLocation" placeholder="">
+            </div>
+
+            <div class="form-group">
+                <label for="startTime">Earliest Arrival Time</label>
+                <input type="text" id="startTime" name="startTime" placeholder="">
+            </div>
+
+            <div class="form-group">
+                <label for="endTime">Latest Arrival Time</label>
+                <input type="text" id="endTime" name="endTime" placeholder="">
+            </div>
+
+            <div class="form-group">
+                <label for="customerNum">Number of Customers</label>
+                <input type="text" id="customerNum" name="customerNum" placeholder="">
+            </div>
+
+            <button type="submit">Search Trips</button>
+        </form>
+
+        <div class="open-trips">Below are all the open rides you want!</div>
+    </div>
+    
+    <!-- Ongoing 内容 -->
+    <div class="content" id="ongoingRides">
+        <h2>CURRENT TRIP</h2>
+        <p>Here is your ongoing ride.</p>
+        
+    </div>
+
+    <!-- My Drive 内容 -->
+    <div class="content" id="myDrive">
+        <h2>My Drive</h2>
+        <p>Manage your driving schedule and history.</p>
+    </div>
+
+    <!-- My Driver Profile 内容 -->
+    <div class="content" id="myDriverProfile">
+        <h2>My Driver Profile</h2>
+        <p>View and update your driver profile information.</p>
+    </div>
+
+    <script>
+        // 监听 tab 点击，切换内容
+        document.querySelectorAll('.menu .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有 tab 的 active 状态
+                document.querySelectorAll('.menu .tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // 获取对应的内容区域 ID
+                let targetId = tab.getAttribute('data-target');
+
+                // 隐藏所有内容区域
+                document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
+
+                // 显示选中的内容区域
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+    </script>
+
+</body>
+</html>
