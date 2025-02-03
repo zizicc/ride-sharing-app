@@ -34,7 +34,25 @@
             <label for="v_specialInfo">Special Info</label>
             <input type="text" id="v_specialInfo" name="v_specialInfo" placeholder="">
         </div>
-
+        
         <button type="submit">Search Trips</button>
     </form>
+
+    <div>Below are all the trips you want!</div>
+    <div>
+        {% if open_trips %}
+            <ul>
+                {% for trip in open_trips %}
+                    <li>
+                        <strong>Trip ID:</strong> {{ trip.t_id }}<br>
+                        <strong>Driver ID:</strong> {{ trip.t_driverid }}<br>
+                        <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }}<br>
+                        <strong>Status:</strong> {{ trip.t_status }}<br>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No open trips available.</p>
+        {% endif %}
+    </div>
 {% endblock %}
