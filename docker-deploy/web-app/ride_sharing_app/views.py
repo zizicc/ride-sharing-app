@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import UserProfile, DriverProfile, Vehicle, Trip
- 
+from datetime import datetime
 # Views
 @login_required
 def home(request):
@@ -199,11 +199,81 @@ def driver_myTrips(request):
     return render(request, 'driver/myTrips.html', {})
 
 
-def driver_search(request):
-    # 获取所有状态为 'open' 的 trip 记录
-    # open_trips = Trip.objects.filter(t_status='open')
+# def driver_search(request):
+#     # 获取所有状态为 'open' 的 trip 记录
+#     # open_trips = Trip.objects.filter(t_status='open')
 
-    # 将查询结果传递到模板
-    # return render(request, 'driver/search.html', {'open_trips': open_trips})
-    all_trips = Trip.objects.all()  # 查询所有行程
-    return render(request, 'driver/search.html', {'open_trips': all_trips})
+#     # 将查询结果传递到模板
+#     # return render(request, 'driver/search.html', {'open_trips': open_trips})
+#     all_trips = Trip.objects.all()  # 查询所有行程
+#     return render(request, 'driver/search.html', {'open_trips': all_trips})
+
+def search_trips(request):
+    # 默认返回所有 Trip 记录
+    trips = Trip.objects.all()
+    
+    if request.method == "POST":
+        # 获取表单数据（均去除首尾空格）
+        arrival_address = request.POST.get("arrivalAddress", "").strip()
+        start_time_str   = request.POST.get("startTime", "").strip()
+        end_time_str     = request.POST.get("endTime", "").strip()
+        customer_num     = request.POST.get("customerNum", "").strip()
+        vehicle_type     = request.POST.get("v_type", "").strip()
+        special_info     = request.POST.get("v_specialInfo", "").strip()
+        
+        # 1. 筛选地点：arrivalAddress 对应 Trip.t_locationid  
+        # 由于 arrivalAddress 是让用户选择的（值为整数），直接使用即可
+        if arrival_address:
+            trips = trips.filter(t_locationid=arrival_address)
+        
+        # 2. 筛选时间范围：Trip.t_arrival_date_time 在 startTime 与 endTime 范围内  
+        # 假设用户输入的时间格式为 "YYYY-MM-DD HH:MM:SS"
+        if start_time_str and end_time_str:
+            try:
+                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+                end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+                trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
+            except ValueError:
+                # 格式错误时，可选择忽略或返回空集
+                pass
+        elif start_time_str:
+            try:
+                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+                trips = trips.filter(t_arrival_date_time__gte=start_time)
+            except ValueError:
+                pass
+        elif end_time_str:
+            try:
+                end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+                trips = trips.filter(t_arrival_date_time__lte=end_time)
+            except ValueError:
+                pass
+        
+        # 3. 筛选乘客人数：customerNum 对应 Trip.t_shareno  
+        if customer_num:
+            try:
+                num = int(customer_num)
+                trips = trips.filter(t_shareno=num)
+            except ValueError:
+                pass
+        
+        # 4. 筛选车辆信息：用户提交的 vehicle type 和 special info  
+        #    分别对应 Vehicle.vehicle_type 和 Vehicle.additional_info  
+        #    （Trip 表中的 t_vehicleid 与 Vehicle 的 id 关联）
+        if vehicle_type or special_info:
+            vehicles = Vehicle.objects.all()
+            if vehicle_type:
+                vehicles = vehicles.filter(vehicle_type__icontains=vehicle_type)
+            if special_info:
+                vehicles = vehicles.filter(additional_info__icontains=special_info)
+            vehicle_ids = vehicles.values_list("id", flat=True)
+            trips = trips.filter(t_vehicleid__in=vehicle_ids)
+    # 构造车辆映射字典：key 为车辆 ID，value 为对应的 Vehicle 对象
+    vehicle_ids = trips.values_list('t_vehicleid', flat=True)
+    vehicles = Vehicle.objects.filter(id__in=vehicle_ids)
+    vehicle_map = {v.id: v for v in vehicles}
+    for trip in trips:
+        trip.vehicle = vehicle_map.get(trip.t_vehicleid)
+
+    context = {"open_trips": trips}
+    return render(request, "driver/search.html", context)

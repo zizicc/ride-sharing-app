@@ -40,7 +40,8 @@ class Vehicle(models.Model):
 
 class Trip(models.Model):
     t_id = models.AutoField(primary_key=True)
-    t_driverid = models.IntegerField()
+    t_driverid = models.IntegerField(null=True, blank=True)
+    t_vehicleid = models.IntegerField(null=True, blank=True)
     t_tripusersid = models.IntegerField()
     t_locationid = models.IntegerField()
     t_arrival_date_time = models.DateTimeField()
@@ -50,3 +51,4 @@ class Trip(models.Model):
     
     def __str__(self):
         return f"Trip {self.t_id}"
+    
