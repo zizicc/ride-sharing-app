@@ -36,9 +36,10 @@ urlpatterns = [
     path('driver/edit_vehicle/', views.edit_vehicle, name='edit_vehicle'),
     path("driver/edit_license/", views.edit_license, name="edit_license"),
     path('switch_role/', views.switch_role, name='switch_role'),
-     path('passenger/startTrip/', views.start_trip, name = 'start_trip'),
+    path('passenger/startTrip/', views.start_trip, name = 'start_trip'),
     path('passenger/profile/', views.passenger_profile, name = 'passenger_profile'),
     path('passenger/edit/', views.edit_passenger, name='edit_passenger'),
+    path('passenger/search/', views.search_passenger, name='search_passenger'),
 
 ]
 

@@ -443,3 +443,71 @@ def mark_trip_complete(request, trip_id):
         trip.t_status = "complete"
         trip.save()
     return redirect('driverongoing') 
+
+@login_required
+def search_passenger(request):
+
+    trips = Trip.objects.filter(t_status='open')
+    # trips = Trip.objects.all()
+    
+    if request.method == "POST":
+
+        arrival_address = request.POST.get("arrivalAddress", "").strip()
+        start_time_str   = request.POST.get("startTime", "").strip()
+        end_time_str     = request.POST.get("endTime", "").strip()
+        customer_num     = request.POST.get("customerNum", "").strip()
+        vehicle_type     = request.POST.get("v_type", "").strip()
+        special_info     = request.POST.get("v_specialInfo", "").strip()
+        
+
+        if arrival_address:
+            trips = trips.filter(t_locationid=arrival_address)
+        
+
+        if start_time_str and end_time_str:
+            try:
+                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+                end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+                trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
+            except ValueError:
+
+                pass
+        elif start_time_str:
+            try:
+                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+                trips = trips.filter(t_arrival_date_time__gte=start_time)
+            except ValueError:
+                pass
+        elif end_time_str:
+            try:
+                end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+                trips = trips.filter(t_arrival_date_time__lte=end_time)
+            except ValueError:
+                pass
+        
+
+        if customer_num:
+            try:
+                num = int(customer_num)
+                trips = trips.filter(t_shareno=num)
+            except ValueError:
+                pass
+        
+
+        
+        if vehicle_type or special_info:
+            vehicles = Vehicle.objects.all()
+            if vehicle_type:
+                vehicles = vehicles.filter(vehicle_type__icontains=vehicle_type)
+            if special_info:
+                vehicles = vehicles.filter(additional_info__icontains=special_info)
+            vehicle_ids = vehicles.values_list("id", flat=True)
+            trips = trips.filter(t_vehicleid__in=vehicle_ids)
+    vehicle_ids = trips.values_list('t_vehicleid', flat=True)
+    vehicles = Vehicle.objects.filter(id__in=vehicle_ids)
+    vehicle_map = {v.id: v for v in vehicles}
+    for trip in trips:
+        trip.vehicle = vehicle_map.get(trip.t_vehicleid)
+
+    context = {"open_trips": trips}
+    return render(request, "passenger/search.html", context)
