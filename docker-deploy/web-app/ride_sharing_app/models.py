@@ -1,6 +1,25 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('passenger', 'Passenger'),
+        ('driver', 'Driver'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='passenger')  
+    was_driver = models.BooleanField(default=False) 
+
+    def is_driver(self):
+        return self.role == 'driver'
+    
+    def is_passenger(self):
+        return self.role == 'passenger'
+    
+    def can_switch_to_driver(self):
+        return self.was_driver
+
 class DriverProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # combine with Django user
     license_number = models.CharField(max_length=20, unique=True)  

@@ -1,0 +1,42 @@
+{% extends "./base.html" %}
+
+{% block title %}Driver Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Driver Profile</h2>
+    <p>View and update your driver profile information.</p>
+
+    <!-- 显示司机基本信息 -->
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">User Information</h5>
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+        </div>
+    </div>
+
+    <!-- 显示车辆信息 -->
+    {% if vehicle %}
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Vehicle Information</h5>
+            <p><strong>Vehicle Type:</strong> {{ vehicle.vehicle_type }}</p>
+            <p><strong>License Plate:</strong> {{ vehicle.license_plate }}</p>
+            <p><strong>Max Passengers:</strong> {{ vehicle.max_passengers }}</p>
+            <p><strong>Special Info:</strong> {{ vehicle.special_info }}</p>
+
+            <!-- 修改车辆信息按钮 -->
+            <a href="{% url 'edit_vehicle' %}" class="btn btn-primary mt-2">Edit Vehicle Info</a>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-warning mt-3">No vehicle information found.</p>
+    {% endif %}
+
+    <!-- 切换角色按钮 -->
+    <div class="mt-3">
+        <a href="{% url 'switch_role' %}" class="btn btn-warning">Switch to Passenger</a>
+    </div>
+</div>
+{% endblock %}
