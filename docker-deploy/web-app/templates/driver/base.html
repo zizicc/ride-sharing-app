@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Driver Dashboard{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 头部导航 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #fff;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .header button {
+            background-color: white;
+            color: black;
+            border: 1px solid #ccc;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            width: auto;
+            min-width: 80px;
+            white-space: nowrap;
+        }
+
+        .header button:hover {
+            background-color: #ddd;
+        }
+
+        /* 选项卡菜单 */
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            background-color: #f1f1f1;
+            padding: 10px 0;
+            border-radius: 8px;
+            margin: 10px;
+        }
+
+        .menu .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .menu .tab.active {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+
+
+        /* 内容区域 */
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 60%;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 头部 -->
+    <div class="header">
+        <h1>Hi, driver zi!</h1>
+        <button>Log Out</button>
+    </div>
+
+    <!-- 菜单导航 -->
+    <div class="menu">
+        <a href="search" class="tab">Search Open Rides</a>
+        <a href="ongoing" class="tab">Ongoing</a>
+        <a href="my_drive" class="tab">My Drive</a>
+        <a href="profile" class="tab">My Driver Profile</a>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>
