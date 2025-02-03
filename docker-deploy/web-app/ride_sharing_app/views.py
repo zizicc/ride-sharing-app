@@ -3,10 +3,9 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import UserProfile, DriverProfile, Vehicle, Trip
+from .models import UserProfile, DriverProfile, Vehicle, Trip, TripUsers
 from datetime import datetime
-
-
+ 
 # Views
 @login_required
 def home(request):
@@ -32,7 +31,7 @@ def register(request):
             user.set_password(form.cleaned_data.get('password1'))
             user.save()
 
-            user_profile = UserProfile.objects.create(user=user, role="passenger", was_driver=False)
+            UserProfile.objects.create(user=user, role="passenger", was_driver=False)
 
             user = authenticate(username=user.username, password=form.cleaned_data.get('password1'))
             if user:
@@ -68,6 +67,7 @@ def register_driver(request):
 
         user_profile.role = 'driver'
         user_profile.is_driver = True
+        user_profile.was_driver = True
         user_profile.save()
 
         driver = DriverProfile.objects.create(
@@ -122,24 +122,43 @@ def passenger_profile(request):
 
 @login_required
 def edit_vehicle(request):
-    """ 允许司机修改车辆信息 """
-    user_profile = request.user.userprofile
+    user_profile = request.user.userprofile  # 获取 UserProfile
 
-    # 确保只有司机能访问
+    # 确保用户是司机，否则跳转到乘客页面
     if not user_profile.is_driver():
         return redirect('passenger_profile')
 
-    vehicle = Vehicle.objects.filter(driver=user_profile).first()
-    if not vehicle:
-        return redirect('driver_profile')
+    # 获取 DriverProfile
+    driver = DriverProfile.objects.filter(user=request.user).first()
+    if not driver:
+        return redirect('register_driver')  # 司机信息缺失时跳转到注册司机页面
 
-    if request.method == 'POST':
-        vehicle.vehicle_type = request.POST.get('vehicle_type')
-        vehicle.license_plate = request.POST.get('license_plate')
-        vehicle.max_passengers = int(request.POST.get('max_passengers'))
-        vehicle.special_info = request.POST.get('special_info', '')
+    # 获取车辆信息
+    vehicle = Vehicle.objects.filter(driver=driver).first()
 
-        vehicle.save()
+    if request.method == "POST":
+        vehicle_type = request.POST.get("vehicle_type")
+        license_plate = request.POST.get("license_plate")
+        max_passengers = request.POST.get("max_passengers")
+        additional_info = request.POST.get("additional_info")
+
+        if vehicle:
+            # 更新车辆信息
+            vehicle.vehicle_type = vehicle_type
+            vehicle.license_plate = license_plate
+            vehicle.max_passengers = max_passengers
+            vehicle.additional_info = additional_info
+            vehicle.save()
+        else:
+            # 创建新车辆信息
+            Vehicle.objects.create(
+                driver=driver,
+                vehicle_type=vehicle_type,
+                license_plate=license_plate,
+                max_passengers=max_passengers,
+                additional_info=additional_info
+            )
+
         return redirect('driver_profile')
 
     return render(request, 'driver/editVehicle.html', {'vehicle': vehicle})
@@ -183,6 +202,108 @@ def switch_role(request):
     else:
         return redirect('passenger_profile')
     
+@login_required
+def edit_driver_profile(request):
+    """ 司机修改个人信息 """
+    user = request.user
+
+    if request.method == "POST":
+        new_username = request.POST.get("username")
+        new_email = request.POST.get("email")
+
+        # 确保用户名和邮箱不能为空
+        if not new_username or not new_email:
+            messages.error(request, "Username and email cannot be empty.")
+            return redirect("edit_driver_profile")
+
+        # 更新用户信息
+        user.username = new_username
+        user.email = new_email
+        user.save()
+        messages.success(request, "Profile updated successfully.")
+
+        return redirect("driver_profile")
+
+    return render(request, "driver/edit_driver_profile.html", {"user": user})
+
+@login_required
+def edit_license(request):
+    """ 司机修改 License Number """
+    user = request.user
+
+    # 确保当前用户有 DriverProfile
+    driver_profile = DriverProfile.objects.filter(user=user).first()
+    if not driver_profile:
+        return redirect("driver_profile")
+
+    if request.method == "POST":
+        new_license = request.POST.get("license_number")
+
+        # 确保 License Number 不能为空
+        if not new_license:
+            messages.error(request, "License number cannot be empty.")
+            return redirect("edit_license")
+
+        # 更新 License Number
+        driver_profile.license_number = new_license
+        driver_profile.save()
+        messages.success(request, "License number updated successfully.")
+
+        return redirect("driver_profile")
+
+    return render(request, "driver/edit_license.html", {"driver_profile": driver_profile})
+    
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Trip, TripUsers
+
+@login_required
+def start_trip(request):
+    """ 乘客发起 Trip 并自动加入 TripUsers """
+    user_profile = request.user.userprofile
+
+    # 只有乘客可以发起 Trip
+    if not user_profile.is_passenger():
+        return redirect('driver_profile')
+
+    if request.method == "POST":
+        location_id = request.POST.get("location")
+        arrival_date_time = request.POST.get("arrival_date_time")
+        shareno = request.POST.get("shareno")
+        is_shareornot = request.POST.get("is_shareornot") == "on"  # 复选框转换布尔值
+
+        # 校验 location_id 是否在 1-20 范围内
+        try:
+            location_id = int(location_id)
+            if location_id < 1 or location_id > 20:
+                raise ValueError
+        except ValueError:
+            messages.error(request, "Invalid location. Please select a number between 1 and 20.")
+            return redirect("start_trip")
+
+        # 确保所有字段不为空
+        if not arrival_date_time or not shareno:
+            messages.error(request, "All fields are required.")
+            return redirect("start_trip")
+
+        # 创建 Trip
+        new_trip = Trip.objects.create(
+            t_locationid=location_id,
+            t_arrival_date_time=arrival_date_time,
+            t_shareno=shareno,
+            t_isshareornot=is_shareornot
+        )
+
+        # 乘客自动加入 TripUsers
+        TripUsers.objects.create(trip=new_trip, user=request.user)
+
+        messages.success(request, "Trip successfully created and you have joined the trip!")
+        return redirect("passenger_profile")
+
+    locations = range(1, 21)  # 生成 1-20 的整数列表
+    return render(request, "passenger/start_trip.html", {"locations": locations})
+
 
 # search page for driver 
 @login_required

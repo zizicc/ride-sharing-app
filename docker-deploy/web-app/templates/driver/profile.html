@@ -13,6 +13,15 @@
             <h5 class="card-title">User Information</h5>
             <p><strong>Username:</strong> {{ user.username }}</p>
             <p><strong>Email:</strong> {{ user.email }}</p>
+            
+            <!-- 🚀 显示 License Number -->
+            <p><strong>License Number:</strong> {{ driver_profile.license_number }}</p>
+
+            <!-- 🚀 修改个人信息按钮 -->
+            <a href="{% url 'edit_driver_profile' %}" class="btn btn-primary mt-2">Edit Profile</a>
+
+            <!-- 🚀 修改 License Number 按钮 -->
+            <a href="{% url 'edit_license' %}" class="btn btn-secondary mt-2">Edit License Number</a>
         </div>
     </div>
 

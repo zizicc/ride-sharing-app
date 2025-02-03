@@ -1,0 +1,24 @@
+{% extends "./base.html" %}
+
+{% block title %}Edit License Number{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Edit License Number</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>License Number:</label>
+            <input type="text" name="license_number" class="form-control" value="{{ driver_profile.license_number }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Save Changes</button>
+    </form>
+</div>
+{% endblock %}
