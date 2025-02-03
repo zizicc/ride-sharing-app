@@ -10,13 +10,33 @@
         <ul>
             {% for trip in trips %}
                 <li>
-                    <strong>Location ID:</strong> {{ trip.t_locationid }} <br>
-                    <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }} <br>
-                    <strong>Share Number:</strong> {{ trip.t_shareno }} <br>
+                    <button class="toggle-btn" onclick="toggleDetails({{ forloop.counter }})">
+                        ▶ Ride {{ forloop.counter }}
+                    </button>
+                    <div id="details-{{ forloop.counter }}" class="details" style="display: none; margin-left: 20px;">
+                        <strong>Location ID:</strong> {{ trip.t_locationid }} <br>
+                        <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }} <br>
+                        <strong>Share Number:</strong> {{ trip.t_shareno }} <br>
+                    </div>
                 </li>
             {% endfor %}
         </ul>
     {% else %}
         <p>No ongoing rides found.</p>
     {% endif %}
+
+    <script>
+        function toggleDetails(id) {
+            let details = document.getElementById("details-" + id);
+            let button = document.querySelector(`button[onclick="toggleDetails(${id})"]`);
+
+            if (details.style.display === "none") {
+                details.style.display = "block";
+                button.innerHTML = "▼ Ride " + id;
+            } else {
+                details.style.display = "none";
+                button.innerHTML = "▶ Ride " + id;
+            }
+        }
+    </script>
 {% endblock %}
