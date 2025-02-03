@@ -447,7 +447,8 @@ def mark_trip_complete(request, trip_id):
 @login_required
 def search_passenger(request):
 
-    trips = Trip.objects.filter(t_status='open')
+    # trips = Trip.objects.filter(t_status='open')
+    trips = Trip.objects.filter(t_status='open', t_isshareornot=True)
     # trips = Trip.objects.all()
     
     if request.method == "POST":
