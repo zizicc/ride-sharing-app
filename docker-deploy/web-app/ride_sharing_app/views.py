@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import UserProfile, DriverProfile, Vehicle, Trip, TripUsers
+from datetime import datetime
  
 # Views
 @login_required
@@ -305,15 +306,12 @@ def start_trip(request):
 
 
 # search page for driver 
-#@login_required
+@login_required
 def driver_search(request):
     # rides = ride.objects.filter(r_state='OPEN').order_by('r_arrival_date_time')
     return render(request, 'driver/search.html', {})
 
-# @login_required
-def driver_ongoing(request):
-    # rides = ride.objects.filter(r_state='OPEN').order_by('r_arrival_date_time')
-    return render(request, 'driver/ongoing.html', {})
+
 
 @login_required
 def driver_myTrips(request):
@@ -321,11 +319,124 @@ def driver_myTrips(request):
     return render(request, 'driver/myTrips.html', {})
 
 
-def driver_search(request):
-    # 获取所有状态为 'open' 的 trip 记录
-    # open_trips = Trip.objects.filter(t_status='open')
+@login_required
+def search_trips(request):
 
-    # 将查询结果传递到模板
-    # return render(request, 'driver/search.html', {'open_trips': open_trips})
-    all_trips = Trip.objects.all()  # 查询所有行程
-    return render(request, 'driver/search.html', {'open_trips': all_trips})
+    trips = Trip.objects.filter(t_status='open')
+    # trips = Trip.objects.all()
+    
+    if request.method == "POST":
+
+        arrival_address = request.POST.get("arrivalAddress", "").strip()
+        start_time_str   = request.POST.get("startTime", "").strip()
+        end_time_str     = request.POST.get("endTime", "").strip()
+        customer_num     = request.POST.get("customerNum", "").strip()
+        vehicle_type     = request.POST.get("v_type", "").strip()
+        special_info     = request.POST.get("v_specialInfo", "").strip()
+        
+
+        if arrival_address:
+            trips = trips.filter(t_locationid=arrival_address)
+        
+
+        if start_time_str and end_time_str:
+            try:
+                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+                end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+                trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
+            except ValueError:
+
+                pass
+        elif start_time_str:
+            try:
+                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+                trips = trips.filter(t_arrival_date_time__gte=start_time)
+            except ValueError:
+                pass
+        elif end_time_str:
+            try:
+                end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+                trips = trips.filter(t_arrival_date_time__lte=end_time)
+            except ValueError:
+                pass
+        
+
+        if customer_num:
+            try:
+                num = int(customer_num)
+                trips = trips.filter(t_shareno=num)
+            except ValueError:
+                pass
+        
+
+        
+        if vehicle_type or special_info:
+            vehicles = Vehicle.objects.all()
+            if vehicle_type:
+                vehicles = vehicles.filter(vehicle_type__icontains=vehicle_type)
+            if special_info:
+                vehicles = vehicles.filter(additional_info__icontains=special_info)
+            vehicle_ids = vehicles.values_list("id", flat=True)
+            trips = trips.filter(t_vehicleid__in=vehicle_ids)
+    vehicle_ids = trips.values_list('t_vehicleid', flat=True)
+    vehicles = Vehicle.objects.filter(id__in=vehicle_ids)
+    vehicle_map = {v.id: v for v in vehicles}
+    for trip in trips:
+        trip.vehicle = vehicle_map.get(trip.t_vehicleid)
+
+    context = {"open_trips": trips}
+    return render(request, "driver/search.html", context)
+
+@login_required
+def join_trip(request, trip_id):
+
+    if request.method == "POST":
+
+        trip = get_object_or_404(Trip, pk=trip_id)
+        
+        try:
+            driver_profile = DriverProfile.objects.get(user=request.user)
+        except DriverProfile.DoesNotExist:
+            return redirect('driverSearch')
+        
+        try:
+            vehicle = Vehicle.objects.get(driver=driver_profile)
+        except Vehicle.DoesNotExist:
+            return redirect('driverSearch')
+        
+        trip.t_driverid = driver_profile.id  
+        trip.t_vehicleid = vehicle.id
+        trip.t_status = 'confirmed'
+        trip.save()
+        
+        return redirect('driverSearch')
+    else:
+        return redirect('driverSearch')
+    
+
+
+@login_required
+def ongoing_trips_for_driver(request):
+    user_profile = UserProfile.objects.get(user=request.user)
+    
+    if user_profile.is_driver():  
+        try:
+            driver_profile = DriverProfile.objects.get(user=request.user)
+            driver_id = driver_profile.id 
+            
+            trips = Trip.objects.filter(t_driverid=driver_id, t_status='confirmed')
+        except DriverProfile.DoesNotExist:
+            trips = []  
+    else:
+        trips = []
+
+    return render(request, 'driver/ongoing.html', {'trips': trips})
+
+
+
+def mark_trip_complete(request, trip_id):
+    trip = get_object_or_404(Trip, pk=trip_id)
+    if trip.t_status == "confirmed":
+        trip.t_status = "complete"
+        trip.save()
+    return redirect('driverongoing') 

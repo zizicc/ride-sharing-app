@@ -1,8 +1,53 @@
+
 {% extends "./base.html" %}
 
-{% block title %}Ongoing Rides{% endblock %}
+{% block title %}Confirmed Rides{% endblock %}
 
 {% block content %}
-    <h2>CURRENT TRIP</h2>
-    <p>Here is your ongoing ride.</p>
+    <h2>Confirmed Rides</h2>
+    <p>Here are your confirmed rides.</p>
+
+    {% if trips %}
+        <ul>
+            {% for trip in trips %}
+                <li>
+                    <button class="toggle-btn" onclick="toggleDetails({{ forloop.counter }})">
+                        ▶ Ride {{ forloop.counter }}
+                    </button>
+
+                    {% if trip.t_status == "confirmed" %}
+                        <form method="post" action="{% url 'mark_trip_complete' trip.t_id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="complete-btn">Mark it as Complete</button>
+                        </form>
+                    {% else %}
+                        <span style="color: green;">(Completed)</span>
+                    {% endif %}
+
+                    <div id="details-{{ forloop.counter }}" class="details" style="display: none; margin-left: 20px;">
+                        <strong>Location ID:</strong> {{ trip.t_locationid }} <br>
+                        <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }} <br>
+                        <strong>Share Number:</strong> {{ trip.t_shareno }} <br>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No ongoing rides found.</p>
+    {% endif %}
+
+    <script>
+        function toggleDetails(id) {
+            let details = document.getElementById("details-" + id);
+            let button = document.querySelector(`button[onclick="toggleDetails(${id})"]`);
+
+            if (details.style.display === "none") {
+                details.style.display = "block";
+                button.innerHTML = "▼ Ride " + id;
+            } else {
+                details.style.display = "none";
+                button.innerHTML = "▶ Ride " + id;
+            }
+        }
+    </script>
 {% endblock %}

@@ -79,8 +79,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'ridesdb',
-        'USER': 'zizi',
-        'PASSWORD':'123',
+        'USER': 'shuyang',
+        'PASSWORD':'5566',
         'HOST':'127.0.0.1',
         'PORT': '5432',
     }

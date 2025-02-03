@@ -4,10 +4,11 @@
 
 {% block content %}
     <h2>Search Open Rides</h2>
-    <form action="#" method="POST">
+    <form action="{% url 'driverSearch' %}" method="POST">
+        {% csrf_token %}
         <div class="form-group">
-            <label for="startLocation">Address</label>
-            <input type="text" id="startLocation" name="startLocation" placeholder="">
+            <label for="arrivalAddress">Address</label>
+            <input type="text" id="arrivalAddress" name="arrivalAddress" placeholder="">
         </div>
 
         <div class="form-group">
@@ -44,12 +45,24 @@
             <ul>
                 {% for trip in open_trips %}
                     <li>
-                        <strong>Trip ID:</strong> {{ trip.t_id }}<br>
-                        <strong>Driver ID:</strong> {{ trip.t_driverid }}<br>
+                        <strong>Location ID:</strong> {{ trip.t_locationid }}<br>
                         <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }}<br>
+                        <strong>Share Number:</strong> {{ trip.t_shareno }}<br>
                         <strong>Status:</strong> {{ trip.t_status }}<br>
+                        {% if trip.vehicle %}
+                            <strong>Vehicle Type:</strong> {{ trip.vehicle.vehicle_type }}<br>
+                            <strong>Special Info:</strong> {{ trip.vehicle.additional_info }}<br>
+                        {% else %}
+                            <strong>Vehicle:</strong> Not Available<br>
+                        {% endif %}
+
+                        <form action="{% url 'join_trip' trip.t_id %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Join Trip As a Driver</button>
+                        </form>
                     </li>
                 {% endfor %}
+
             </ul>
         {% else %}
             <p>No open trips available.</p>
