@@ -1,0 +1,29 @@
+{% extends "./base.html" %}
+
+{% block title %}Edit Vehicle Information{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Edit Vehicle Information</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Vehicle Type:</label>
+            <input type="text" name="vehicle_type" class="form-control" value="{{ vehicle.vehicle_type }}" required>
+        </div>
+        <div class="form-group">
+            <label>License Plate:</label>
+            <input type="text" name="license_plate" class="form-control" value="{{ vehicle.license_plate }}" required>
+        </div>
+        <div class="form-group">
+            <label>Max Passengers:</label>
+            <input type="number" name="max_passengers" class="form-control" value="{{ vehicle.max_passengers }}" required>
+        </div>
+        <div class="form-group">
+            <label>Special Info:</label>
+            <textarea name="special_info" class="form-control">{{ vehicle.special_info }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

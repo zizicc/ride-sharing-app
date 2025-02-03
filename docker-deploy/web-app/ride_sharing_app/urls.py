@@ -26,11 +26,16 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('register/driver/', views.register_driver, name = 'register_driver'),
     path('admin/', admin.site.urls),
-    path('driver/', views.driver_search, name = 'driverSearch'),
-    path('driver/search', views.driver_search, name = 'driverSearch'),
-    path('driver/ongoing', views.driver_ongoing, name = 'driverongoing'),
-    path('driver/my_drive', views.driver_myDrive, name = 'driver_myDrive'),
-    path('driver/profile', views.driver_profile, name = 'driverProfile'),
+    path('driver/search/', views.driver_search, name = 'driverSearch'),
+    path('driver/ongoing/', views.driver_ongoing, name = 'driverongoing'),
+    path('driver/my_trip/', views.driver_myTrips, name = 'driver_myTrips'),
+    path('driver/profile/', views.driver_profile, name = 'driver_profile'),
+    path('driver/edit_vehicle/', views.edit_vehicle, name='edit_vehicle'),
+    path('switch_role/', views.switch_role, name='switch_role'),
+    path('passenger/profile/', views.passenger_profile, name = 'passenger_profile'),
+    
+
+    path('passenger/edit/', views.edit_passenger, name='edit_passenger'),
 
 ]
 

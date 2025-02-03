@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Passenger Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Passenger Profile</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">User Information</h5>
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+
+            <!-- 编辑信息按钮 -->
+            <a href="{% url 'edit_passenger' %}" class="btn btn-primary mt-2">Edit Profile</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
