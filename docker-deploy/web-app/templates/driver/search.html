@@ -55,6 +55,11 @@
                         {% else %}
                             <strong>Vehicle:</strong> Not Available<br>
                         {% endif %}
+
+                        <form action="{% url 'join_trip' trip.t_id %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Join Trip As a Driver</button>
+                        </form>
                     </li>
                 {% endfor %}
 

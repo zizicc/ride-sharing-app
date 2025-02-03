@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
@@ -183,12 +183,12 @@ def switch_role(request):
     
 
 # search page for driver 
-#@login_required
+@login_required
 def driver_search(request):
     # rides = ride.objects.filter(r_state='OPEN').order_by('r_arrival_date_time')
     return render(request, 'driver/search.html', {})
 
-# @login_required
+@login_required
 def driver_ongoing(request):
     # rides = ride.objects.filter(r_state='OPEN').order_by('r_arrival_date_time')
     return render(request, 'driver/ongoing.html', {})
@@ -199,21 +199,14 @@ def driver_myTrips(request):
     return render(request, 'driver/myTrips.html', {})
 
 
-# def driver_search(request):
-#     # 获取所有状态为 'open' 的 trip 记录
-#     # open_trips = Trip.objects.filter(t_status='open')
-
-#     # 将查询结果传递到模板
-#     # return render(request, 'driver/search.html', {'open_trips': open_trips})
-#     all_trips = Trip.objects.all()  # 查询所有行程
-#     return render(request, 'driver/search.html', {'open_trips': all_trips})
-
+@login_required
 def search_trips(request):
-    # 默认返回所有 Trip 记录
-    trips = Trip.objects.all()
+
+    trips = Trip.objects.filter(t_status='open')
+    # trips = Trip.objects.all()
     
     if request.method == "POST":
-        # 获取表单数据（均去除首尾空格）
+
         arrival_address = request.POST.get("arrivalAddress", "").strip()
         start_time_str   = request.POST.get("startTime", "").strip()
         end_time_str     = request.POST.get("endTime", "").strip()
@@ -221,20 +214,18 @@ def search_trips(request):
         vehicle_type     = request.POST.get("v_type", "").strip()
         special_info     = request.POST.get("v_specialInfo", "").strip()
         
-        # 1. 筛选地点：arrivalAddress 对应 Trip.t_locationid  
-        # 由于 arrivalAddress 是让用户选择的（值为整数），直接使用即可
+
         if arrival_address:
             trips = trips.filter(t_locationid=arrival_address)
         
-        # 2. 筛选时间范围：Trip.t_arrival_date_time 在 startTime 与 endTime 范围内  
-        # 假设用户输入的时间格式为 "YYYY-MM-DD HH:MM:SS"
+
         if start_time_str and end_time_str:
             try:
                 start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
                 end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
                 trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
             except ValueError:
-                # 格式错误时，可选择忽略或返回空集
+
                 pass
         elif start_time_str:
             try:
@@ -249,7 +240,7 @@ def search_trips(request):
             except ValueError:
                 pass
         
-        # 3. 筛选乘客人数：customerNum 对应 Trip.t_shareno  
+
         if customer_num:
             try:
                 num = int(customer_num)
@@ -257,9 +248,8 @@ def search_trips(request):
             except ValueError:
                 pass
         
-        # 4. 筛选车辆信息：用户提交的 vehicle type 和 special info  
-        #    分别对应 Vehicle.vehicle_type 和 Vehicle.additional_info  
-        #    （Trip 表中的 t_vehicleid 与 Vehicle 的 id 关联）
+
+        
         if vehicle_type or special_info:
             vehicles = Vehicle.objects.all()
             if vehicle_type:
@@ -268,7 +258,6 @@ def search_trips(request):
                 vehicles = vehicles.filter(additional_info__icontains=special_info)
             vehicle_ids = vehicles.values_list("id", flat=True)
             trips = trips.filter(t_vehicleid__in=vehicle_ids)
-    # 构造车辆映射字典：key 为车辆 ID，value 为对应的 Vehicle 对象
     vehicle_ids = trips.values_list('t_vehicleid', flat=True)
     vehicles = Vehicle.objects.filter(id__in=vehicle_ids)
     vehicle_map = {v.id: v for v in vehicles}
@@ -277,3 +266,29 @@ def search_trips(request):
 
     context = {"open_trips": trips}
     return render(request, "driver/search.html", context)
+
+@login_required
+def join_trip(request, trip_id):
+
+    if request.method == "POST":
+
+        trip = get_object_or_404(Trip, pk=trip_id)
+        
+        try:
+            driver_profile = DriverProfile.objects.get(user=request.user)
+        except DriverProfile.DoesNotExist:
+            return redirect('driverSearch')
+        
+        try:
+            vehicle = Vehicle.objects.get(driver=driver_profile)
+        except Vehicle.DoesNotExist:
+            return redirect('driverSearch')
+        
+        trip.t_driverid = driver_profile.id  
+        trip.t_vehicleid = vehicle.id
+        trip.t_status = 'confirmed'
+        trip.save()
+        
+        return redirect('driverSearch')
+    else:
+        return redirect('driverSearch')

@@ -27,6 +27,7 @@ urlpatterns = [
     path('register/driver/', views.register_driver, name = 'register_driver'),
     path('admin/', admin.site.urls),
     path('driver/search/', views.search_trips, name = 'driverSearch'),
+    path('join/<int:trip_id>/', views.join_trip, name='join_trip'),
     path('driver/ongoing/', views.driver_ongoing, name = 'driverongoing'),
     path('driver/my_trip/', views.driver_myTrips, name = 'driver_myTrips'),
     path('driver/profile/', views.driver_profile, name = 'driver_profile'),
