@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import UserProfile, DriverProfile, Vehicle, Trip
 from datetime import datetime
+
+
 # Views
 @login_required
 def home(request):
@@ -308,3 +310,12 @@ def ongoing_trips_for_driver(request):
         trips = []
 
     return render(request, 'driver/ongoing.html', {'trips': trips})
+
+
+
+def mark_trip_complete(request, trip_id):
+    trip = get_object_or_404(Trip, pk=trip_id)
+    if trip.t_status == "confirmed":
+        trip.t_status = "complete"
+        trip.save()
+    return redirect('driverongoing') 

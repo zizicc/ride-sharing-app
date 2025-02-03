@@ -1,3 +1,4 @@
+
 {% extends "./base.html" %}
 
 {% block title %}Confirmed Rides{% endblock %}
@@ -13,6 +14,16 @@
                     <button class="toggle-btn" onclick="toggleDetails({{ forloop.counter }})">
                         ▶ Ride {{ forloop.counter }}
                     </button>
+
+                    {% if trip.t_status == "confirmed" %}
+                        <form method="post" action="{% url 'mark_trip_complete' trip.t_id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="complete-btn">Mark it as Complete</button>
+                        </form>
+                    {% else %}
+                        <span style="color: green;">(Completed)</span>
+                    {% endif %}
+
                     <div id="details-{{ forloop.counter }}" class="details" style="display: none; margin-left: 20px;">
                         <strong>Location ID:</strong> {{ trip.t_locationid }} <br>
                         <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }} <br>
