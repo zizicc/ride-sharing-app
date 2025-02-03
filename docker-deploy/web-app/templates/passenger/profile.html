@@ -23,13 +23,13 @@
         </div>
     </div>
 
-    <!-- 🚀 如果乘客从未当过司机，显示"Become a Driver"按钮 -->
+    <!-- 如果乘客从未当过司机，显示"Become a Driver"按钮 -->
     {% if not user.userprofile.was_driver %}
     <div class="mt-3">
         <a href="{% url 'register_driver' %}" class="btn btn-success">Become a Driver</a>
     </div>
 
-    <!-- 🚀 如果乘客曾是司机，显示“Switch to Driver”按钮 -->
+    <!-- 如果乘客曾是司机，显示“Switch to Driver”按钮 -->
     {% elif user.userprofile.was_driver %}
     <div class="mt-3">
         <a href="{% url 'switch_role' %}" class="btn btn-warning">Switch to Driver</a>
