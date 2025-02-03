@@ -25,6 +25,11 @@ class DriverProfile(models.Model):
     license_number = models.CharField(max_length=20, unique=True)  
     is_approved = models.BooleanField(default=True) 
 
+     # 反向访问 Vehicle，允许通过 driver_profile.vehicle 直接访问车辆信息
+    @property
+    def vehicle(self):
+        return self.vehicle_set.first()  # 获取关联的 Vehicle（如果存在）
+
     def __str__(self):
         return f"{self.user.username} - {self.license_number}"
     
@@ -51,4 +56,5 @@ class Trip(models.Model):
     
     def __str__(self):
         return f"Trip {self.t_id}"
+    
     

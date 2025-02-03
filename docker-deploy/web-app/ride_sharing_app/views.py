@@ -188,10 +188,7 @@ def driver_search(request):
     # rides = ride.objects.filter(r_state='OPEN').order_by('r_arrival_date_time')
     return render(request, 'driver/search.html', {})
 
-@login_required
-def driver_ongoing(request):
-    # rides = ride.objects.filter(r_state='OPEN').order_by('r_arrival_date_time')
-    return render(request, 'driver/ongoing.html', {})
+
 
 @login_required
 def driver_myTrips(request):
@@ -292,3 +289,22 @@ def join_trip(request, trip_id):
         return redirect('driverSearch')
     else:
         return redirect('driverSearch')
+    
+
+
+@login_required
+def ongoing_trips_for_driver(request):
+    user_profile = UserProfile.objects.get(user=request.user)
+    
+    if user_profile.is_driver():  
+        try:
+            driver_profile = DriverProfile.objects.get(user=request.user)
+            driver_id = driver_profile.id 
+            
+            trips = Trip.objects.filter(t_driverid=driver_id, t_status='confirmed')
+        except DriverProfile.DoesNotExist:
+            trips = []  
+    else:
+        trips = []
+
+    return render(request, 'driver/ongoing.html', {'trips': trips})
