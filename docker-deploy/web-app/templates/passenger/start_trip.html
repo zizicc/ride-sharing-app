@@ -1,0 +1,44 @@
+{% extends "./base.html" %}
+
+{% block title %}Start a Trip{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Start a Trip</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Destination (1-20):</label>
+            <select name="location" class="form-control" required>
+                {% for loc in locations %}
+                    <option value="{{ loc }}">{{ loc }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Arrival Date & Time:</label>
+            <input type="datetime-local" name="arrival_date_time" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label>Number of Passengers:</label>
+            <input type="number" name="shareno" class="form-control" min="1" required>
+        </div>
+
+        <div class="form-group">
+            <input type="checkbox" name="is_shareornot"> Share the Ride?
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-2">Start Trip</button>
+    </form>
+</div>
+{% endblock %}
