@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import UserProfile, DriverProfile, Vehicle, Trip, TripUsers
 from datetime import datetime
+from django.http import HttpResponse
  
 # Views
 @login_required
@@ -512,3 +513,26 @@ def search_passenger(request):
 
     context = {"open_trips": trips}
     return render(request, "passenger/search.html", context)
+
+@login_required
+def join_trip_as_sharer(request, trip_id):
+    trip = get_object_or_404(Trip, t_id=trip_id)
+
+    if request.method == "POST":
+        try:
+            num_passengers = int(request.POST.get("num_passengers", 1)) 
+            if num_passengers < 1:
+                return HttpResponse("Invalid passenger number.", status=400)
+
+            trip.t_shareno += num_passengers
+            trip.save()
+
+            if not TripUsers.objects.filter(trip=trip, user=request.user).exists():
+                TripUsers.objects.create(trip=trip, user=request.user)
+
+            return redirect('search_passenger') 
+
+        except ValueError:
+            return HttpResponse("Invalid input.", status=400)
+
+    return render(request, "search_passenger.html", {"trip": trip})

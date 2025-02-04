@@ -56,10 +56,18 @@
                             <strong>Vehicle:</strong> Not Available<br>
                         {% endif %}
 
-                        <form action="{% url 'join_trip' trip.t_id %}" method="POST" style="display:inline;">
+                        <!-- <form action="{% url 'join_trip_as_sharer' trip.t_id %}" method="POST" style="display:inline;">
                             {% csrf_token %}
+                            <input type="number" name="num_passengers" min="1" required>
                             <button type="submit">Join Trip As a Sharer</button>
+                        </form> -->
+                        <form id="joinTripForm_{{ trip.t_id }}" action="{% url 'join_trip_as_sharer' trip.t_id %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="num_passengers" id="num_passengers_{{ trip.t_id }}">
+                            <button type="button" onclick="confirmJoinTrip('{{ trip.t_id }}')">Join Trip As a Sharer</button>
                         </form>
+                        
+                        
                     </li>
                 {% endfor %}
 
@@ -68,4 +76,15 @@
             <p>No open trips available.</p>
         {% endif %}
     </div>
+    <script>
+        function confirmJoinTrip(tripId) {
+            let numPassengers = prompt("Please enter the number of passengers:", "1");
+            if (numPassengers !== null && numPassengers !== "" && parseInt(numPassengers) > 0) {
+                document.getElementById("num_passengers_" + tripId).value = numPassengers;
+                document.getElementById("joinTripForm_" + tripId).submit();
+            } else {
+                alert("Invalid input. Please enter a valid number.");
+            }
+        }
+    </script>
 {% endblock %}
