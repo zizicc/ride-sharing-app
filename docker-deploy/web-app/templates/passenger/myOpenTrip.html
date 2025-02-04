@@ -1,0 +1,49 @@
+{% extends './base.html' %}
+
+{% block content %}
+    <h2>Your Open Trips</h2>
+
+    {% if trips %}
+        <ul>
+            {% for trip in trips %}
+                <li>
+                    <strong>Location ID:</strong> {{ trip.t_locationid }}<br>
+                    <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }}<br>
+                    <strong>Share Number:</strong> {{ trip.t_shareno }}<br>
+
+                    <button onclick="toggleEditForm('{{ trip.t_id }}')">Edit</button>
+
+                    <form id="editForm_{{ trip.t_id }}" method="POST" action="{% url 'myOpenTrip_passenger' %}" style="display: none;">
+                        {% csrf_token %}
+                        <input type="hidden" name="trip_id" value="{{ trip.t_id }}">
+
+                        <label for="location_{{ trip.t_id }}">Location ID:</label>
+                        <input type="number" id="location_{{ trip.t_id }}" name="t_locationid" value="{{ trip.t_locationid }}" required>
+
+                        <label for="arrival_{{ trip.t_id }}">Arrival Time:</label>
+                        <input type="datetime-local" id="arrival_{{ trip.t_id }}" name="t_arrival_date_time" 
+                               value="{{ trip.t_arrival_date_time|date:'Y-m-d\TH:i' }}" required>
+
+                        <label for="shareno_{{ trip.t_id }}">Share Number:</label>
+                        <input type="number" id="shareno_{{ trip.t_id }}" name="t_shareno" value="{{ trip.t_shareno }}" required>
+
+                        <button type="submit">Save Changes</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no open trips.</p>
+    {% endif %}
+
+    <script>
+        function toggleEditForm(tripId) {
+            let form = document.getElementById("editForm_" + tripId);
+            if (form.style.display === "none") {
+                form.style.display = "block";
+            } else {
+                form.style.display = "none";
+            }
+        }
+    </script>
+{% endblock %}

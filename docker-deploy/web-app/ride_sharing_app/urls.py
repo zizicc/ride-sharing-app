@@ -40,6 +40,7 @@ urlpatterns = [
     path('passenger/profile/', views.passenger_profile, name = 'passenger_profile'),
     path('passenger/edit/', views.edit_passenger, name='edit_passenger'),
     path('passenger/search/', views.search_passenger, name='search_passenger'),
+    path('passenger/myOpenTrip/', views.myOpenTrip_passenger, name='myOpenTrip_passenger'),
     path('join_trip_as_sharer/<int:trip_id>/', views.join_trip_as_sharer, name='join_trip_as_sharer'),
 ]
 

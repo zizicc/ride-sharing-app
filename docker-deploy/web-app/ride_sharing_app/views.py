@@ -536,3 +536,35 @@ def join_trip_as_sharer(request, trip_id):
             return HttpResponse("Invalid input.", status=400)
 
     return render(request, "search_passenger.html", {"trip": trip})
+
+
+@login_required
+def myOpenTrip_passenger(request):
+    """ 获取当前用户参与的所有 open 状态的 trip 并处理编辑请求 """
+    # trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
+    # trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open")
+    trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
+    trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open").order_by("t_arrival_date_time")
+
+    if request.method == "POST":
+        trip_id = request.POST.get("trip_id")
+        if not trip_id:
+            return HttpResponse("Invalid request: trip_id is missing.", status=400)
+        trip = get_object_or_404(Trip, t_id=trip_id)
+        
+
+        # 确保用户只能编辑自己参与的 trip
+        if not TripUsers.objects.filter(trip=trip, user=request.user).exists():
+            return HttpResponse("You are not authorized to edit this trip.", status=403)
+
+        trip.t_locationid = request.POST.get("t_locationid")
+        trip.t_arrival_date_time = request.POST.get("t_arrival_date_time")
+        # trip.t_shareno = request.POST.get("t_shareno")
+        trip.t_shareno = int(request.POST.get("t_shareno"))
+        print("DEBUG: POST DATA ->", request.POST)  # 查看提交的数据
+
+
+        trip.save()
+        # return redirect('myOpenTrip_passenger')  # 成功后刷新页面
+
+    return render(request, "passenger/myOpenTrip.html", {"trips": trips})
