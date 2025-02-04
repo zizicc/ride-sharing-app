@@ -60,6 +60,7 @@ class TripUsers(models.Model):
     tu_id = models.AutoField(primary_key=True)
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)  # 关联 Trip
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # 关联 User（乘客）
+    passenger_number = models.IntegerField(default=1)
 
     def __str__(self):
         return f"User {self.user.username} in Trip {self.trip.t_id}"

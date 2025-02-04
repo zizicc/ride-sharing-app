@@ -6,7 +6,8 @@ from django.contrib import messages
 from .models import UserProfile, DriverProfile, Vehicle, Trip, TripUsers
 from datetime import datetime
 from django.http import HttpResponse
- 
+from django.contrib.auth import get_user_model
+User = get_user_model() 
 # Views
 @login_required
 def home(request):
@@ -297,7 +298,7 @@ def start_trip(request):
         )
 
         # 乘客自动加入 TripUsers
-        TripUsers.objects.create(trip=new_trip, user=request.user)
+        TripUsers.objects.create(trip=new_trip, user=request.user,passenger_number=shareno)
 
         messages.success(request, "Trip successfully created and you have joined the trip!")
         return redirect("passenger_profile")
@@ -527,11 +528,12 @@ def join_trip_as_sharer(request, trip_id):
             trip.t_shareno += num_passengers
             trip.save()
 
-            if not TripUsers.objects.filter(trip=trip, user=request.user).exists():
-                TripUsers.objects.create(trip=trip, user=request.user)
-
+            if not TripUsers.objects.filter(trip=trip, user=request.user,passenger_number=num_passengers).exists():
+                TripUsers.objects.create(trip=trip, user=request.user,passenger_number=num_passengers)
+            
             return redirect('search_passenger') 
 
+            
         except ValueError:
             return HttpResponse("Invalid input.", status=400)
 
@@ -540,7 +542,7 @@ def join_trip_as_sharer(request, trip_id):
 
 @login_required
 def myOpenTrip_passenger(request):
-    """ 获取当前用户参与的所有 open 状态的 trip 并处理编辑请求 """
+
     # trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
     # trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open")
     trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
@@ -551,20 +553,74 @@ def myOpenTrip_passenger(request):
         if not trip_id:
             return HttpResponse("Invalid request: trip_id is missing.", status=400)
         trip = get_object_or_404(Trip, t_id=trip_id)
-        
 
-        # 确保用户只能编辑自己参与的 trip
         if not TripUsers.objects.filter(trip=trip, user=request.user).exists():
             return HttpResponse("You are not authorized to edit this trip.", status=403)
 
         trip.t_locationid = request.POST.get("t_locationid")
         trip.t_arrival_date_time = request.POST.get("t_arrival_date_time")
         # trip.t_shareno = request.POST.get("t_shareno")
-        trip.t_shareno = int(request.POST.get("t_shareno"))
+        # get past passenger number
+        trip_user = TripUsers.objects.filter(trip=trip, user=request.user).first()
+        past_passenger_num = trip_user.passenger_number if trip_user else 0  
+        num_change = int(request.POST.get("t_shareno")) - past_passenger_num
+        trip.t_shareno = (trip.t_shareno or 0) + num_change
         print("DEBUG: POST DATA ->", request.POST)  # 查看提交的数据
-
 
         trip.save()
         # return redirect('myOpenTrip_passenger')  # 成功后刷新页面
 
     return render(request, "passenger/myOpenTrip.html", {"trips": trips})
+
+@login_required
+def myConfirmedTrip_passenger(request):
+    
+    trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
+    trips = Trip.objects.filter(t_id__in=trip_ids, t_status="confirmed").order_by("t_arrival_date_time")
+    trip_data = []
+    for trip in trips:
+        driver_profile = None
+        vehicle = None
+
+        if trip.t_driverid:
+
+            driver_profile = DriverProfile.objects.filter(id=trip.t_driverid).first()
+            if driver_profile: 
+                driver_user_info = User.objects.filter(id=driver_profile.user_id).first() 
+                vehicle = Vehicle.objects.filter(driver_id=driver_profile.id).first()
+ 
+        trip_data.append({
+            "trip": trip,
+            "driver": driver_profile,
+            "vehicle": vehicle,
+            "driver_user_info":driver_user_info
+        })
+
+    return render(request, "passenger/myConfirmedTrip.html", {"trip_data": trip_data})
+
+@login_required
+def myCompleteTrip_passenger(request):
+    
+    trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
+    trips = Trip.objects.filter(t_id__in=trip_ids, t_status="complete").order_by("-t_arrival_date_time")
+    trip_data = []
+    for trip in trips:
+        driver_profile = None
+        vehicle = None
+
+        if trip.t_driverid:
+
+            driver_profile = DriverProfile.objects.filter(id=trip.t_driverid).first()
+            if driver_profile: 
+                driver_user_info = User.objects.filter(id=driver_profile.user_id).first() 
+                vehicle = Vehicle.objects.filter(driver_id=driver_profile.id).first()
+ 
+        trip_data.append({
+            "trip": trip,
+            "driver": driver_profile,
+            "vehicle": vehicle,
+            "driver_user_info":driver_user_info
+        })
+
+    return render(request, "passenger/myCompleteTrip.html", {"trip_data": trip_data})
+
