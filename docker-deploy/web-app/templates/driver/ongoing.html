@@ -12,7 +12,7 @@
             {% for trip in trips %}
                 <li>
                     <button class="toggle-btn" onclick="toggleDetails({{ forloop.counter }})">
-                        ▶ Ride {{ forloop.counter }}
+                        ▼ Ride {{ forloop.counter }}
                     </button>
 
                     {% if trip.t_status == "confirmed" %}
@@ -24,7 +24,7 @@
                         <span style="color: green;">(Completed)</span>
                     {% endif %}
 
-                    <div id="details-{{ forloop.counter }}" class="details" style="display: none; margin-left: 20px;">
+                    <div id="details-{{ forloop.counter }}" class="details" style="margin-left: 20px;">
                         <strong>Location ID:</strong> {{ trip.t_locationid }} <br>
                         <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }} <br>
                         <strong>Share Number:</strong> {{ trip.t_shareno }} <br>
@@ -41,7 +41,7 @@
             let details = document.getElementById("details-" + id);
             let button = document.querySelector(`button[onclick="toggleDetails(${id})"]`);
 
-            if (details.style.display === "none") {
+            if (details.style.display === "none" || details.style.display === "") {
                 details.style.display = "block";
                 button.innerHTML = "▼ Ride " + id;
             } else {

@@ -4,5 +4,21 @@
 
 {% block content %}
     <h2>My Trips</h2>
-    <p>Manage your driving schedule and history.</p>
+    <p>Manage your driving history.</p>
+
+    {% if trips %}
+        <ul>
+            {% for trip in trips %}
+                <li>
+                    <strong>Ride {{ forloop.counter }}</strong><br>
+                    <strong>Location ID:</strong> {{ trip.t_locationid }} <br>
+                    <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }} <br>
+                    <strong>Share Number:</strong> {{ trip.t_shareno }} <br>
+                    <strong>Trip Status:</strong> {{ trip.t_status }} <br>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No complete rides found.</p>
+    {% endif %}
 {% endblock %}

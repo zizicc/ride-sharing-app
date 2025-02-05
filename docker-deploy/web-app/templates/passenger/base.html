@@ -95,11 +95,11 @@
 
     <!-- 菜单导航 -->
     <div class="menu">
-        <!-- <a href="{% url 'startTrip' %}" class="tab">Search Open Rides</a> -->
-        <a href="{% url 'passengerSearch' %}" class="tab">Search Open Rides</a>
-        <a href="{% url 'passengerongoing' %}" class="tab">Ongoing</a>
-        <a href="{% url 'passenger_myTrips' %}" class="tab">My Trips</a>
         <a href="{% url 'start_trip' %}" class="tab">Start a Trip</a>
+        <a href="{% url 'search_passenger' %}" class="tab">Search Open Trips</a>
+        <a href="{% url 'myOpenTrip_passenger' %}" class="tab">My Open Trips</a>
+        <a href="{% url 'myConfirmedTrip_passenger' %}" class="tab">My Confirmed Trips</a>
+        <a href="{% url 'myCompleteTrip_passenger' %}" class="tab">My Complete Trips</a>
         <a href="{% url 'passenger_profile' %}" class="tab">My Passenger Profile</a>
     </div>
 

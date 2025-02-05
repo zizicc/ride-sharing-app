@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-t4$r@oyl849*k^os86lb-m14w0yi&_#xvg=57$dv1cw806ga=7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','vcm-45974.vm.duke.edu', '0.0.0.0','vcm-45811.vm.duke.edu']
+ALLOWED_HOSTS = ['localhost','vcm-45974.vm.duke.edu', '0.0.0.0','vcm-45811.vm.duke.edu','127.0.0.1']
 
 
 # Application definition
@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'ride_sharing_app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ridesdb',
+        'NAME': 'ridesdbtest',
         'USER': 'shuyang',
         'PASSWORD':'5566',
         'HOST':'127.0.0.1',

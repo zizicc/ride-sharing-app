@@ -1,0 +1,42 @@
+{% extends './base.html' %}
+
+{% block content %}
+    <h2>Your Complete Trips</h2>
+    <p>View ride, driver, and vehicle details for any complete ride belonging to you.</p>
+
+    {% if trip_data %}
+        <ul>
+            {% for item in trip_data %}
+                <li>
+                    <strong>Location ID:</strong> {{ item.trip.t_locationid }}<br>
+                    <strong>Arrival Time:</strong> {{ item.trip.t_arrival_date_time }}<br>
+                    <strong>Share Number:</strong> {{ item.trip.t_shareno }}<br>
+                    
+                    {% if item.driver %}
+                        <h3>Driver Information:</h3>
+                        <strong>Name:</strong> {{ item.driver.user.username }}<br>
+                        <strong>License Number:</strong> {{ item.driver.license_number }}<br>
+                        <strong>Approved:</strong> {% if item.driver.is_approved %} ✅ Yes {% else %} ❌ No {% endif %}<br>
+                    {% else %}
+                        <strong>Driver:</strong> Not Assigned Yet<br>
+                    {% endif %}
+
+                    {% if item.vehicle %}
+                        <h3>Vehicle Information:</h3>
+                        <strong>Type:</strong> {{ item.vehicle.vehicle_type }}<br>
+                        <strong>License Plate:</strong> {{ item.vehicle.license_plate }}<br>
+                        <strong>Max Passengers:</strong> {{ item.vehicle.max_passengers }}<br>
+                        {% if item.vehicle.additional_info %}
+                            <strong>Special Info:</strong> {{ item.vehicle.additional_info }}<br>
+                        {% endif %}
+                    {% else %}
+                        <strong>Vehicle:</strong> Not Assigned Yet<br>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no complete trips.</p>
+    {% endif %}
+
+{% endblock %}
