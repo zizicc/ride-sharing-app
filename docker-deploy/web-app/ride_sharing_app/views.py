@@ -384,7 +384,9 @@ def search_trips(request):
     for trip in trips:
         trip.vehicle = vehicle_map.get(trip.t_vehicleid)
 
-    context = {"open_trips": trips}
+    locations = range(1, 21)  # 生成 1-20 的整数列表
+
+    context = {"open_trips": trips, "locations": locations}
     return render(request, "driver/search.html", context)
 
 @login_required
@@ -537,7 +539,10 @@ def search_passenger(request):
     for trip in trips:
         trip.vehicle = vehicle_map.get(trip.t_vehicleid)
 
-    context = {"open_trips": trips}
+    locations = range(1, 21) 
+
+    context = {"open_trips": trips, "locations": locations}
+    # context = {"open_trips": trips}
     return render(request, "passenger/search.html", context)
 
 @login_required
