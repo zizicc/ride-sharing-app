@@ -7,6 +7,7 @@ from .models import UserProfile, DriverProfile, Vehicle, Trip, TripUsers
 from datetime import datetime
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.utils.dateparse import parse_datetime
 User = get_user_model() 
 # Views
 @login_required
@@ -326,27 +327,38 @@ def search_trips(request):
         if arrival_address:
             trips = trips.filter(t_locationid=arrival_address)
         
+        
+        def parse_datetime_local(dt_str):
+            return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M") if dt_str else None
 
-        if start_time_str and end_time_str:
-            try:
-                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
-                end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-                trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
-            except ValueError:
+        start_time = parse_datetime_local(start_time_str)
+        end_time = parse_datetime_local(end_time_str)
 
-                pass
-        elif start_time_str:
-            try:
-                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
-                trips = trips.filter(t_arrival_date_time__gte=start_time)
-            except ValueError:
-                pass
-        elif end_time_str:
-            try:
-                end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-                trips = trips.filter(t_arrival_date_time__lte=end_time)
-            except ValueError:
-                pass
+        if start_time and end_time:
+            trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
+        elif start_time:
+            trips = trips.filter(t_arrival_date_time__gte=start_time)
+        elif end_time:
+            trips = trips.filter(t_arrival_date_time__lte=end_time)
+        # if start_time_str and end_time_str:
+        #     try:
+        #         start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+        #         end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+        #         trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
+        #     except ValueError:
+        #         pass
+        # elif start_time_str:
+        #     try:
+        #         start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+        #         trips = trips.filter(t_arrival_date_time__gte=start_time)
+        #     except ValueError:
+        #         pass
+        # elif end_time_str:
+        #     try:
+        #         end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+        #         trips = trips.filter(t_arrival_date_time__lte=end_time)
+        #     except ValueError:
+        #         pass
         
 
         if customer_num:
@@ -467,26 +479,39 @@ def search_passenger(request):
             trips = trips.filter(t_locationid=arrival_address)
         
 
-        if start_time_str and end_time_str:
-            try:
-                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
-                end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-                trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
-            except ValueError:
+        def parse_datetime_local(dt_str):
+            return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M") if dt_str else None
 
-                pass
-        elif start_time_str:
-            try:
-                start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
-                trips = trips.filter(t_arrival_date_time__gte=start_time)
-            except ValueError:
-                pass
-        elif end_time_str:
-            try:
-                end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-                trips = trips.filter(t_arrival_date_time__lte=end_time)
-            except ValueError:
-                pass
+        start_time = parse_datetime_local(start_time_str)
+        end_time = parse_datetime_local(end_time_str)
+
+        if start_time and end_time:
+            trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
+        elif start_time:
+            trips = trips.filter(t_arrival_date_time__gte=start_time)
+        elif end_time:
+            trips = trips.filter(t_arrival_date_time__lte=end_time)
+
+        # if start_time_str and end_time_str:
+        #     try:
+        #         start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+        #         end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+        #         trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
+        #     except ValueError:
+
+        #         pass
+        # elif start_time_str:
+        #     try:
+        #         start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
+        #         trips = trips.filter(t_arrival_date_time__gte=start_time)
+        #     except ValueError:
+        #         pass
+        # elif end_time_str:
+        #     try:
+        #         end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+        #         trips = trips.filter(t_arrival_date_time__lte=end_time)
+        #     except ValueError:
+        #         pass
         
 
         if customer_num:
