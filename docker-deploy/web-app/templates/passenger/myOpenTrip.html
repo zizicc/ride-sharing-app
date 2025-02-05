@@ -7,7 +7,7 @@
         <ul>
             {% for trip in trips %}
                 <li>
-                    <strong>Location ID:</strong> {{ trip.t_locationid }}<br>
+                    <strong>Location:</strong> {{ trip.t_locationid }}<br>
                     <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }}<br>
                     <strong>Share Number:</strong> {{ trip.t_shareno }}<br>
 
@@ -17,15 +17,17 @@
                         {% csrf_token %}
                         <input type="hidden" name="trip_id" value="{{ trip.t_id }}">
 
-                        <label for="location_{{ trip.t_id }}">Location ID:</label>
+                        <label for="location_{{ trip.t_id }}">Please enter the updated location: (current: {{ trip.t_locationid }})<br></label>
                         <input type="number" id="location_{{ trip.t_id }}" name="t_locationid" value="{{ trip.t_locationid }}" required>
 
-                        <label for="arrival_{{ trip.t_id }}">Arrival Time:</label>
+                        <label for="arrival_{{ trip.t_id }}"><br>Please enter the updated arrival time: (current: {{ trip.t_arrival_date_time|date:'Y-m-d H:i' }})<br></label>
                         <input type="datetime-local" id="arrival_{{ trip.t_id }}" name="t_arrival_date_time" 
                                value="{{ trip.t_arrival_date_time|date:'Y-m-d\TH:i' }}" required>
 
-                        <label for="shareno_{{ trip.t_id }}">Share Number:</label>
-                        <input type="number" id="shareno_{{ trip.t_id }}" name="t_shareno" value="{{ trip.t_shareno }}" required>
+                        <label for="shareno_{{ trip.t_id }}"><br>Please enter the updated passenger number: (current: passenger in your order: {{ trip.own_passenger_num }}; total passengers: {{ trip.t_shareno }})<br></label>
+                        <input type="number" id="shareno_{{ trip.t_id }}" name="update_own_passenger_num" value="{{ trip.own_passenger_num }}" required>
+
+                        
 
                         <button type="submit">Save Changes</button>
                     </form>

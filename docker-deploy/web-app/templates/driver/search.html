@@ -3,79 +3,150 @@
 {% block title %}Search Open Rides{% endblock %}
 
 {% block content %}
-    <h2>Search Open Rides</h2>
-    <form action="{% url 'driverSearch' %}" method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="arrivalAddress">Address</label>
-            <input type="text" id="arrivalAddress" name="arrivalAddress" placeholder="">
+    <div class="container">
+        <h2 class="text-center">Search Open Rides</h2>
+
+        <!-- 搜索表单 -->
+        <form action="{% url 'driverSearch' %}" method="POST" class="search-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="arrivalAddress">Address</label>
+                <input type="text" id="arrivalAddress" name="arrivalAddress" class="form-control" placeholder="">
+            </div>
+
+            <div class="form-group">
+                <label for="startTime">Earliest Arrival Time</label>
+                <input type="datetime-local" id="startTime" name="startTime" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="endTime">Latest Arrival Time</label>
+                <input type="datetime-local" id="endTime" name="endTime" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="customerNum">Number of Customers</label>
+                <input type="number" id="customerNum" name="customerNum" class="form-control" min="1" placeholder="">
+            </div>
+
+            <div class="form-group">
+                <label for="v_type">Vehicle Type</label>
+                <input type="text" id="v_type" name="v_type" class="form-control" placeholder="">
+            </div>
+
+            <div class="form-group">
+                <label for="v_specialInfo">Special Info</label>
+                <input type="text" id="v_specialInfo" name="v_specialInfo" class="form-control" placeholder="">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Search Trips</button>
+        </form>
+
+        <hr>
+
+        <!-- 搜索结果展示 -->
+        <div class="results-section">
+            <h3 class="text-center">Available Trips</h3>
+
+            {% if open_trips %}
+                <div class="trip-list">
+                    {% for trip in open_trips %}
+                        <div class="trip-card">
+                            <div class="trip-info">
+                                <p><strong> Location ID:</strong> {{ trip.t_locationid }}</p>
+                                <p><strong> Arrival Time:</strong> {{ trip.t_arrival_date_time }}</p>
+                                <p><strong> Share Number:</strong> {{ trip.t_shareno }}</p>
+                                <p><strong> Trip Status:</strong> {{ trip.t_status }}</p>
+                                <p>
+                                    <strong> Shared Status:</strong> 
+                                    <span class="{% if trip.t_isshareornot %}shared-status{% else %}not-shared-status{% endif %}">
+                                        {% if trip.t_isshareornot %} Shared {% else %} Not Shared {% endif %}
+                                    </span>
+                                </p>
+
+                                {% if trip.vehicle %}
+                                    <p><strong> Vehicle Type:</strong> {{ trip.vehicle.vehicle_type }}</p>
+                                    <p><strong>Special Info:</strong> {{ trip.vehicle.additional_info }}</p>
+                                {% else %}
+                                    <p><strong> Vehicle:</strong> <span class="text-danger">Not Available</span></p>
+                                {% endif %}
+                            </div>
+
+                            <form action="{% url 'join_trip' trip.t_id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-block">Join Trip As a Driver</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-center text-muted">No open trips available.</p>
+            {% endif %}
         </div>
-
-        <!-- <div class="form-group">
-            <label for="startTime">Earliest Arrival Time</label>
-            <input type="text" id="startTime" name="startTime" placeholder="">
-        </div>
-
-        <div class="form-group">
-            <label for="endTime">Latest Arrival Time</label>
-            <input type="text" id="endTime" name="endTime" placeholder="">
-        </div> -->
-
-        <div class="form-group">
-            <label for="startTime">Earliest Arrival Time</label>
-            <input type="datetime-local" id="startTime" name="startTime" class="form-control">
-        </div>
-
-        <div class="form-group">
-            <label for="endTime">Latest Arrival Time</label>
-            <input type="datetime-local" id="endTime" name="endTime" class="form-control">
-        </div>
-
-        <div class="form-group">
-            <label for="customerNum">Number of Customers</label>
-            <input type="text" id="customerNum" name="customerNum" placeholder="">
-        </div>
-
-        <div class="form-group">
-            <label for="v_type">Vehicle Type</label>
-            <input type="text" id="v_type" name="v_type" placeholder="">
-        </div>
-
-        <div class="form-group">
-            <label for="v_specialInfo">Special Info</label>
-            <input type="text" id="v_specialInfo" name="v_specialInfo" placeholder="">
-        </div>
-        
-        <button type="submit">Search Trips</button>
-    </form>
-
-    <div>Below are all the trips you want!</div>
-    <div>
-        {% if open_trips %}
-            <ul>
-                {% for trip in open_trips %}
-                    <li>
-                        <strong>Location ID:</strong> {{ trip.t_locationid }}<br>
-                        <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }}<br>
-                        <strong>Share Number:</strong> {{ trip.t_shareno }}<br>
-                        <strong>Status:</strong> {{ trip.t_status }}<br>
-                        {% if trip.vehicle %}
-                            <strong>Vehicle Type:</strong> {{ trip.vehicle.vehicle_type }}<br>
-                            <strong>Special Info:</strong> {{ trip.vehicle.additional_info }}<br>
-                        {% else %}
-                            <strong>Vehicle:</strong> Not Available<br>
-                        {% endif %}
-
-                        <form action="{% url 'join_trip' trip.t_id %}" method="POST" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit">Join Trip As a Driver</button>
-                        </form>
-                    </li>
-                {% endfor %}
-
-            </ul>
-        {% else %}
-            <p>No open trips available.</p>
-        {% endif %}
     </div>
+
+    <!-- CSS 样式优化 -->
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .search-form {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .trip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .trip-card {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #007bff;
+        }
+
+        .trip-info p {
+            margin: 5px 0;
+        }
+
+        /* .shared-status {
+            color: green;
+            font-weight: bold;
+        }
+
+        .not-shared-status {
+            color: red;
+            font-weight: bold;
+        } */
+
+        /* .text-danger {
+            color: red;
+        } */
+
+        .text-muted {
+            color: #6c757d;
+        }
+    </style>
 {% endblock %}

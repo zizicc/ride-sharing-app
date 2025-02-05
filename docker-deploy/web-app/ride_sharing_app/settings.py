@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'ride_sharing_app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ridesdb',
+        'NAME': 'ridesdbtest',
         'USER': 'shuyang',
         'PASSWORD':'5566',
         'HOST':'127.0.0.1',

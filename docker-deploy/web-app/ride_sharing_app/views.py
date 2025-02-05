@@ -564,38 +564,91 @@ def join_trip_as_sharer(request, trip_id):
 
     return render(request, "search_passenger.html", {"trip": trip})
 
-
+from django.shortcuts import redirect
 @login_required
 def myOpenTrip_passenger(request):
-
-    # trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
-    # trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open")
     trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
     trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open").order_by("t_arrival_date_time")
+
+    # 预计算所有 trip 的 ownPassengerNum
+    trip_user_data = {tu.trip_id: tu.passenger_number for tu in TripUsers.objects.filter(user=request.user)}
 
     if request.method == "POST":
         trip_id = request.POST.get("trip_id")
         if not trip_id:
             return HttpResponse("Invalid request: trip_id is missing.", status=400)
+
         trip = get_object_or_404(Trip, t_id=trip_id)
 
-        if not TripUsers.objects.filter(trip=trip, user=request.user).exists():
+        # 确保当前用户有权限修改这个 trip
+        trip_user = TripUsers.objects.filter(trip=trip, user=request.user).first()
+        if not trip_user:
             return HttpResponse("You are not authorized to edit this trip.", status=403)
 
+        # 更新 trip 相关信息
         trip.t_locationid = request.POST.get("t_locationid")
         trip.t_arrival_date_time = request.POST.get("t_arrival_date_time")
-        # trip.t_shareno = request.POST.get("t_shareno")
-        # get past passenger number
-        trip_user = TripUsers.objects.filter(trip=trip, user=request.user).first()
-        past_passenger_num = trip_user.passenger_number if trip_user else 0  
-        num_change = int(request.POST.get("t_shareno")) - past_passenger_num
-        trip.t_shareno = (trip.t_shareno or 0) + num_change
-        print("DEBUG: POST DATA ->", request.POST)  # 查看提交的数据
 
+        # 计算新的 own_passenger_num
+        past_own_passenger_num = trip_user.passenger_number
+        new_own_passenger_num = request.POST.get("update_own_passenger_num")
+
+        if not new_own_passenger_num or not new_own_passenger_num.isdigit():
+            return HttpResponse("Invalid input for passenger number.", status=400)
+
+        new_own_passenger_num = int(new_own_passenger_num)
+        num_change = new_own_passenger_num - past_own_passenger_num
+
+        # ✅ 更新 `TripUsers` 表中的 passenger_number
+        trip_user.passenger_number = new_own_passenger_num
+        trip_user.save()
+
+        # ✅ 更新 `Trip` 表中的 `t_shareno`
+        trip.t_shareno = (trip.t_shareno or 0) + num_change
         trip.save()
-        # return redirect('myOpenTrip_passenger')  # 成功后刷新页面
+
+        # 🔄 避免重复提交问题，重定向到 GET
+        return redirect('myOpenTrip_passenger')
+
+    # 在 trip 对象中存储 own_passenger_num，方便模板访问
+    for trip in trips:
+        trip.own_passenger_num = trip_user_data.get(trip.t_id, 0)
 
     return render(request, "passenger/myOpenTrip.html", {"trips": trips})
+
+
+
+# @login_required
+# def myOpenTrip_passenger(request):
+
+#     # trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
+#     # trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open")
+#     trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
+#     trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open").order_by("t_arrival_date_time")
+
+#     if request.method == "POST":
+#         trip_id = request.POST.get("trip_id")
+#         if not trip_id:
+#             return HttpResponse("Invalid request: trip_id is missing.", status=400)
+#         trip = get_object_or_404(Trip, t_id=trip_id)
+
+#         if not TripUsers.objects.filter(trip=trip, user=request.user).exists():
+#             return HttpResponse("You are not authorized to edit this trip.", status=403)
+
+#         trip.t_locationid = request.POST.get("t_locationid")
+#         trip.t_arrival_date_time = request.POST.get("t_arrival_date_time")
+#         # trip.t_shareno = request.POST.get("t_shareno")
+#         # get past passenger number
+#         trip_user = TripUsers.objects.filter(trip=trip, user=request.user).first()
+#         past_passenger_num = trip_user.passenger_number if trip_user else 0  
+#         num_change = int(request.POST.get("t_shareno")) - past_passenger_num
+#         trip.t_shareno = (trip.t_shareno or 0) + num_change
+#         print("DEBUG: POST DATA ->", request.POST) 
+
+#         trip.save()
+#         # return redirect('myOpenTrip_passenger') 
+
+#     return render(request, "passenger/myOpenTrip.html", {"trips": trips, "ownPassengerNum": past_passenger_num})
 
 @login_required
 def myConfirmedTrip_passenger(request):
