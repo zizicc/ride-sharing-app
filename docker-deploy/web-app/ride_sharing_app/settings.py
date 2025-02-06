@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['web','localhost','vcm-45974.vm.duke.edu', '0.0.0.0','vcm-45811.vm.duke.edu','127.0.0.1']
 
-CSRF_TRUSTED_ORIGINS = ['http://vcm-45974.vm.duke.edu:8000',]
+CSRF_TRUSTED_ORIGINS = ['http://vcm-45974.vm.duke.edu:8000','http://vcm-45811.vm.duke.edu:8000']
 
 
 # Application definition
@@ -79,14 +79,23 @@ WSGI_APPLICATION = 'ride_sharing_app.wsgi.application'
 
 DATABASES = {
     'default': {
+        # 'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': 'ridesdbtest',
+        # 'USER': 'shuyang',
+        # 'PASSWORD':'5566',
+        # 'HOST':'127.0.0.1',
+        # 'PORT': '5432',
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD':'postgres',
         'HOST':'db',
         'PORT': '5432',
+
     }
 }
+
+
 
 # Login & Logout URLs
 LOGIN_URL = '/login/'

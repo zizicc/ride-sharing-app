@@ -8,6 +8,7 @@ from datetime import datetime
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.utils.dateparse import parse_datetime
+from .gmail_service import send_email
 
 import os.path
 import base64
@@ -416,7 +417,30 @@ def join_trip(request, trip_id):
         except Vehicle.DoesNotExist:
             return redirect('driverSearch')
         
-        send_trip_confirmation_email_with_gmail_api(trip)
+        # **获取所有乘客 ID**
+        passenger_ids = TripUsers.objects.filter(trip=trip).values_list('user_id', flat=True)
+
+        # **根据 ID 获取所有乘客信息**
+        passengers = User.objects.filter(id__in=passenger_ids)
+
+        # **发送邮件给所有乘客**
+        subject = "Trip Confirmation"
+        body = f"""
+        Dear Passenger,
+
+        Your trip (Trip ID: {trip.t_id}) has been confirmed.
+        Driver: {request.user.username}
+        Vehicle: {vehicle.vehicle_type} ({vehicle.license_plate})
+
+        Safe travels!
+        """
+
+        for passenger in passengers:
+            send_email(passenger.email, subject, body)
+
+
+        
+        # send_trip_confirmation_email_with_gmail_api(trip)
         trip.t_driverid = driver_profile.id  
         trip.t_vehicleid = vehicle.id
         trip.t_status = 'confirmed'
@@ -740,7 +764,8 @@ def gmail_authenticate():
                 CREDENTIALS_PATH, SCOPES)
             # this is the redirect URI which should match your API setting, you can 
             # find this setting in Credentials/Authorized redirect URIs at the API setting portal
-            creds = flow.run_local_server(host='vcm-45974.vm.duke.edu', port=5000)
+            # creds = flow.run_local_server(host='localhost', port=10000)
+            creds = flow.run_local_server(port=10000)
         # Save vouchers for later use
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
@@ -790,4 +815,4 @@ def send_trip_confirmation_email_with_gmail_api(trip):
     """
 
     for recipient_email in recipient_emails:
-        send_message(service, "yazi.wang22@gmail.com", "recipient_email", subject, html_message)
+        send_message(service, "dwarfhamsterzhang@gmail.com", "recipient_email", subject, html_message)
