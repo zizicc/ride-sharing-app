@@ -8,6 +8,16 @@ from datetime import datetime
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.utils.dateparse import parse_datetime
+
+import os.path
+import base64
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+
 User = get_user_model() 
 # Views
 @login_required
@@ -406,10 +416,12 @@ def join_trip(request, trip_id):
         except Vehicle.DoesNotExist:
             return redirect('driverSearch')
         
+        send_trip_confirmation_email_with_gmail_api(trip)
         trip.t_driverid = driver_profile.id  
         trip.t_vehicleid = vehicle.id
         trip.t_status = 'confirmed'
         trip.save()
+
         
         return redirect('driverSearch')
     else:
@@ -707,3 +719,75 @@ def myCompleteTrip_passenger(request):
 
     return render(request, "passenger/myCompleteTrip.html", {"trip_data": trip_data})
 
+
+# Authentication and service creation
+def gmail_authenticate():
+    SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+    creds = None
+    # token.json stored user access and refresh tokens
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    # Authentication if no valid credentials are available
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            # This credentials.json is the credential you download from Google API portal when you 
+            # created the OAuth 2.0 Client IDs
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 获取当前文件所在目录
+            CREDENTIALS_PATH = os.path.join(BASE_DIR, "credentials.json")  # 绝对路径
+            flow = InstalledAppFlow.from_client_secrets_file(
+                CREDENTIALS_PATH, SCOPES)
+            # this is the redirect URI which should match your API setting, you can 
+            # find this setting in Credentials/Authorized redirect URIs at the API setting portal
+            creds = flow.run_local_server(host='vcm-45974.vm.duke.edu', port=5000)
+        # Save vouchers for later use
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+
+    return build('gmail', 'v1', credentials=creds)
+
+# Create and send emails
+def send_message(service, sender, to, subject, msg_html):
+    message = MIMEMultipart('alternative')
+    message['from'] = sender
+    message['to'] = to
+    message['subject'] = subject
+
+    msg = MIMEText(msg_html, 'html')
+    message.attach(msg)
+
+    raw = base64.urlsafe_b64encode(message.as_bytes())
+    raw = raw.decode()
+    body = {'raw': raw}
+
+    message = (service.users().messages().send(userId="me", body=body).execute())
+    print(f"Message Id: {message['id']}")
+
+
+def send_trip_confirmation_email_with_gmail_api(trip):
+    """ 通过 Gmail API 发送 Trip 确认邮件给所有乘客 """
+    service = gmail_authenticate()
+
+
+    # 获取该 trip 所有乘客的邮箱
+    trip_users = TripUsers.objects.filter(trip=trip)
+    recipient_emails = [user.user.email for user in trip_users if user.user.email]
+
+    if not recipient_emails:
+        print("no user")
+        return
+
+    subject = "Your trip has been confirmed"
+    html_message = f"""
+    <html>
+    <body>
+        <p>Hi, your trip  <strong>{trip.t_id}</strong> has been confirmed</p >
+        <p><strong>Destination:</strong> {trip.t_locationid}</p >
+        <p><strong>Arrival time:</strong> {trip.t_arrival_date_time}</p >
+    </body>
+    </html>
+    """
+
+    for recipient_email in recipient_emails:
+        send_message(service, "yazi.wang22@gmail.com", "recipient_email", subject, html_message)
