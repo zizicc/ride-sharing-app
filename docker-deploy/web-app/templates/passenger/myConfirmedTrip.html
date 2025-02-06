@@ -1,43 +1,97 @@
 {% extends './base.html' %}
 
 {% block content %}
-    <h2>Your Confirmed Trips</h2>
-    <p>View ride, driver, and vehicle details for any confirmed ride belonging to you.</p>
+<div class="container">
+    <h2 class="text-center mb-4">Your Confirmed Trips</h2>
+    <p class="text-muted text-center">View ride, driver, and vehicle details for any confirmed ride belonging to you.</p>
 
     {% if trip_data %}
-        <ul>
+        <div class="trip-list">
             {% for item in trip_data %}
-                <li>
-                    <h3>Trip Detail:</h3>
-                    <strong>Location ID:</strong> {{ item.trip.t_locationid }}<br>
-                    <strong>Arrival Time:</strong> {{ item.trip.t_arrival_date_time }}<br>
-                    <strong>Share Number:</strong> {{ item.trip.t_shareno }}<br>
-                    
+                <div class="trip-card">
+                    <h5 class="text-primary title_detail"> Trip Details</h5>
+                    <p><strong>Location ID:</strong> {{ item.trip.t_locationid }}</p>
+                    <p><strong>Arrival Time:</strong> {{ item.trip.t_arrival_date_time }}</p>
+                    <p><strong>Share Number:</strong> {{ item.trip.t_shareno }}</p>
+
                     {% if item.driver %}
-                        <h3>Driver Information:</h3>
-                        <strong>Name:</strong> {{ item.driver.user.username }}<br>
-                        <strong>License Number:</strong> {{ item.driver.license_number }}<br>
-                        <strong>Approved:</strong> {% if item.driver.is_approved %} ✅ Yes {% else %} ❌ No {% endif %}<br>
+                        <h5 class="text-success title_detail"> Driver Information</h5>
+                        <p><strong>Name:</strong> {{ item.driver.user.username }}</p>
+                        <p><strong>License Number:</strong> {{ item.driver.license_number }}</p>
+                        <p><strong>Approved:</strong> 
+                            <span class="badge {% if item.driver.is_approved %}badge-success{% else %}badge-danger{% endif %}">
+                                {% if item.driver.is_approved %} ✅ Yes {% else %} ❌ No {% endif %}
+                            </span>
+                        </p>
                     {% else %}
-                        <strong>Driver:</strong> Not Assigned Yet<br>
+                        <p><strong>Driver:</strong> <span class="text-danger">Not Assigned Yet</span></p>
                     {% endif %}
 
                     {% if item.vehicle %}
-                        <h3>Vehicle Information:</h3>
-                        <strong>Type:</strong> {{ item.vehicle.vehicle_type }}<br>
-                        <strong>License Plate:</strong> {{ item.vehicle.license_plate }}<br>
-                        <strong>Max Passengers:</strong> {{ item.vehicle.max_passengers }}<br>
+                        <h5 class="text-info title_detail"> Vehicle Information</h5>
+                        <p><strong>Type:</strong> {{ item.vehicle.vehicle_type }}</p>
+                        <p><strong>License Plate:</strong> {{ item.vehicle.license_plate }}</p>
+                        <p><strong>Max Passengers:</strong> {{ item.vehicle.max_passengers }}</p>
                         {% if item.vehicle.additional_info %}
-                            <strong>Special Info:</strong> {{ item.vehicle.additional_info }}<br>
+                            <p><strong>Special Info:</strong> {{ item.vehicle.additional_info }}</p>
                         {% endif %}
                     {% else %}
-                        <strong>Vehicle:</strong> Not Assigned Yet<br>
+                        <p><strong>Vehicle:</strong> <span class="text-danger">Not Assigned Yet</span></p>
                     {% endif %}
-                </li>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     {% else %}
-        <p>You have no confirmed trips.</p>
+        <p class="text-center text-muted">You have no confirmed trips.</p>
     {% endif %}
+</div>
+
+<!-- CSS 样式优化 -->
+<style>
+    .container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .trip-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .trip-card {
+        background: #ffffff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border-left: 5px solid #007bff;
+    }
+
+    h5 {
+        margin-bottom: 10px;
+    }
+
+    .badge {
+        font-size: 14px;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    /* .badge-success {
+        background-color: #28a745;
+        color: white;
+    } */
+
+    .title_detail{
+        text-align: center;
+        background-color: #eedce9;
+    }
+
+    .badge-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+</style>
 
 {% endblock %}
