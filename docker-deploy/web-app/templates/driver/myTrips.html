@@ -3,22 +3,76 @@
 {% block title %}My Trips{% endblock %}
 
 {% block content %}
-    <h2>My Trips</h2>
-    <p>Manage your driving history.</p>
+<div class="container">
+    <h2 class="text-center mb-4">My Trips</h2>
+    <p class="text-muted text-center">Manage your driving history.</p>
 
     {% if trips %}
-        <ul>
+        <div class="trip-list">
             {% for trip in trips %}
-                <li>
-                    <strong>Ride {{ forloop.counter }}</strong><br>
-                    <strong>Location ID:</strong> {{ trip.t_locationid }} <br>
-                    <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }} <br>
-                    <strong>Share Number:</strong> {{ trip.t_shareno }} <br>
-                    <strong>Trip Status:</strong> {{ trip.t_status }} <br>
-                </li>
+                <div class="trip-card">
+                    <h5 class="trip-title">🚗 Ride {{ forloop.counter }}</h5>
+                    <p><strong>Location ID:</strong> {{ trip.t_locationid }}</p>
+                    <p><strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }}</p>
+                    <p><strong>Share Number:</strong> {{ trip.t_shareno }}</p>
+                    <p>
+                        <strong>Trip Status:</strong> 
+                        <span class="badge {% if trip.t_status == 'confirmed' %}badge-success{% else %}badge-secondary{% endif %}">
+                            {{ trip.t_status }}
+                        </span>
+                    </p>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     {% else %}
-        <p>No complete rides found.</p>
+        <p class="text-center text-muted">No complete rides found.</p>
     {% endif %}
+</div>
+
+<!-- CSS 样式优化 -->
+<style>
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .trip-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .trip-card {
+        background: #ffffff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border-left: 5px solid #007bff;
+    }
+
+    .trip-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #007bff;
+        margin-bottom: 10px;
+    }
+
+    .badge {
+        font-size: 14px;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+</style>
+
 {% endblock %}

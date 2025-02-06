@@ -1,51 +1,113 @@
 {% extends './base.html' %}
 
 {% block content %}
-    <h2>Your Open Trips</h2>
-    <p>View and edit ride details for any open ride belong to you.</p>
+<div class="container">
+    <h2 class="text-center mb-4">Your Open Trips</h2>
+    <p class="text-muted text-center">View and edit ride details for any open ride belong to you.</p>
+
     {% if trips %}
-        <ul>
+        <div class="trip-list">
             {% for trip in trips %}
-                <li>
-                    <strong>Location:</strong> {{ trip.t_locationid }}<br>
-                    <strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }}<br>
-                    <strong>Share Number:</strong> {{ trip.t_shareno }}<br>
+                <div class="trip-card">
+                    <div class="trip-info">
+                        <p><strong>Location:</strong> {{ trip.t_locationid }}</p>
+                        <p><strong>Arrival Time:</strong> {{ trip.t_arrival_date_time }}</p>
+                        <p><strong>Share Number:</strong> {{ trip.t_shareno }}</p>
+                    </div>
 
-                    <button onclick="toggleEditForm('{{ trip.t_id }}')">Edit</button>
+                    <button class="btn btn-primary btn-sm" onclick="toggleEditForm('{{ trip.t_id }}')">Edit</button>
 
-                    <form id="editForm_{{ trip.t_id }}" method="POST" action="{% url 'myOpenTrip_passenger' %}" style="display: none;">
+                    <form id="editForm_{{ trip.t_id }}" method="POST" action="{% url 'myOpenTrip_passenger' %}" class="edit-form" style="display: none;">
                         {% csrf_token %}
                         <input type="hidden" name="trip_id" value="{{ trip.t_id }}">
 
-                        <label for="location_{{ trip.t_id }}">Please enter the updated location: (current: {{ trip.t_locationid }})<br></label>
-                        <input type="number" id="location_{{ trip.t_id }}" name="t_locationid" value="{{ trip.t_locationid }}" required>
+                        <fieldset>
+                            <legend class="h5 text-primary">Edit Trip</legend>
 
-                        <label for="arrival_{{ trip.t_id }}"><br>Please enter the updated arrival time: (current: {{ trip.t_arrival_date_time|date:'Y-m-d H:i' }})<br></label>
-                        <input type="datetime-local" id="arrival_{{ trip.t_id }}" name="t_arrival_date_time" 
-                               value="{{ trip.t_arrival_date_time|date:'Y-m-d\TH:i' }}" required>
+                            <div class="form-group">
+                                <label for="location_{{ trip.t_id }}">Updated Location (Current: {{ trip.t_locationid }})</label>
+                                <input type="number" id="location_{{ trip.t_id }}" name="t_locationid" class="form-control" value="{{ trip.t_locationid }}" required>
+                            </div>
 
-                        <label for="shareno_{{ trip.t_id }}"><br>Please enter the updated passenger number: (current: passenger in your order: {{ trip.own_passenger_num }}; total passengers: {{ trip.t_shareno }})<br></label>
-                        <input type="number" id="shareno_{{ trip.t_id }}" name="update_own_passenger_num" value="{{ trip.own_passenger_num }}" required>
+                            <div class="form-group">
+                                <label for="arrival_{{ trip.t_id }}">Updated Arrival Time (Current: {{ trip.t_arrival_date_time|date:'Y-m-d H:i' }})</label>
+                                <input type="datetime-local" id="arrival_{{ trip.t_id }}" name="t_arrival_date_time" class="form-control"
+                                       value="{{ trip.t_arrival_date_time|date:'Y-m-d\TH:i' }}" required>
+                            </div>
 
-                        
+                            <div class="form-group">
+                                <label for="shareno_{{ trip.t_id }}">Updated Passenger Number (Current: {{ trip.own_passenger_num }} / Total: {{ trip.t_shareno }})</label>
+                                <input type="number" id="shareno_{{ trip.t_id }}" name="update_own_passenger_num" class="form-control" value="{{ trip.own_passenger_num }}" required>
+                            </div>
 
-                        <button type="submit">Save Changes</button>
+                            <button type="submit" class="btn btn-success btn-block">Save Changes</button>
+                        </fieldset>
                     </form>
-                </li>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     {% else %}
-        <p>You have no open trips.</p>
+        <p class="text-center text-muted">You have no open trips.</p>
     {% endif %}
+</div>
 
-    <script>
-        function toggleEditForm(tripId) {
-            let form = document.getElementById("editForm_" + tripId);
-            if (form.style.display === "none") {
-                form.style.display = "block";
-            } else {
-                form.style.display = "none";
-            }
+<!-- CSS 样式优化 -->
+<style>
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .trip-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .trip-card {
+        background: #ffffff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border-left: 5px solid #007bff;
+        position: relative;
+    }
+
+    .trip-info p {
+        margin: 5px 0;
+    }
+
+    .edit-form {
+        background: #f8f9fa;
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .btn-sm {
+        margin-top: 10px;
+    }
+
+    .btn-block {
+        width: 100%;
+    }
+</style>
+
+<script>
+    function toggleEditForm(tripId) {
+        let form = document.getElementById("editForm_" + tripId);
+        if (form.style.display === "none") {
+            form.style.display = "block";
+        } else {
+            form.style.display = "none";
         }
-    </script>
+    }
+</script>
+
 {% endblock %}

@@ -4,41 +4,73 @@
 
 {% block content %}
 <div class="container">
-    <h2>Start a Trip</h2>
+    <h2 class="text-center">Start a Trip</h2>
 
     {% if messages %}
         {% for message in messages %}
-        <div class="alert alert-danger">{{ message }}</div>
+            <div class="alert alert-danger">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
-    <form method="post">
+    <form method="post" class="trip-form">
         {% csrf_token %}
 
-        <div class="form-group">
-            <label>Destination (1-20):</label>
-            <select name="location" class="form-control" required>
-                {% for loc in locations %}
-                    <option value="{{ loc }}">{{ loc }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <fieldset>
+            <legend class="h5 text-primary">Trip Details</legend>
 
-        <div class="form-group">
-            <label>Arrival Date & Time:</label>
-            <input type="datetime-local" name="arrival_date_time" class="form-control" required>
-        </div>
+            <div class="form-group">
+                <label for="location">Destination (1-20):</label>
+                <select id="location" name="location" class="form-control" required>
+                    <option value="" disabled selected>-- Select Destination --</option>
+                    {% for loc in locations %}
+                        <option value="{{ loc }}">{{ loc }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label>Number of Passengers:</label>
-            <input type="number" name="shareno" class="form-control" min="1" required>
-        </div>
+            <div class="form-group">
+                <label for="arrival_date_time">Arrival Date & Time:</label>
+                <input type="datetime-local" id="arrival_date_time" name="arrival_date_time" class="form-control" required>
+            </div>
 
-        <div class="form-group">
-            <input type="checkbox" name="is_shareornot"> Share the Ride?
-        </div>
+            <div class="form-group">
+                <label for="shareno">Number of Passengers:</label>
+                <input type="number" id="shareno" name="shareno" class="form-control" min="1" required placeholder="">
+            </div>
 
-        <button type="submit" class="btn btn-primary mt-2">Start Trip</button>
+            <div class="form-check mb-3">
+                <input type="checkbox" id="is_shareornot" name="is_shareornot" class="form-check-input">
+                <label for="is_shareornot" class="form-check-label">Share the Ride?</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Start Trip</button>
+        </fieldset>
     </form>
 </div>
+
+
+<style>
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .trip-form {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .btn-block {
+        width: 100%;
+        margin-top: 10px;
+    }
+</style>
+
 {% endblock %}
