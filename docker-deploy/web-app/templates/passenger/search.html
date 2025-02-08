@@ -74,11 +74,21 @@
                             {% endif %}
                         </div>
 
-                        <form id="joinTripForm_{{ trip.t_id }}" action="{% url 'join_trip_as_sharer' trip.t_id %}" method="POST" style="display:inline;">
+                        {% if trip.t_id in user_in_trip_map %}
+                            <p class="text-success">You are already part of this trip.</p>
+                        {% else %}
+                            <form id="joinTripForm_{{ trip.t_id }}" action="{% url 'join_trip_as_sharer' trip.t_id %}" method="POST" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="num_passengers" id="num_passengers_{{ trip.t_id }}">
+                                <button type="button" class="btn btn-success btn-block" onclick="confirmJoinTrip('{{ trip.t_id }}')">Join Trip As a Sharer</button>
+                            </form>
+                        {% endif %}
+
+                        <!-- <form id="joinTripForm_{{ trip.t_id }}" action="{% url 'join_trip_as_sharer' trip.t_id %}" method="POST" style="display:inline;">
                             {% csrf_token %}
                             <input type="hidden" name="num_passengers" id="num_passengers_{{ trip.t_id }}">
                             <button type="button" class="btn btn-success btn-block" onclick="confirmJoinTrip('{{ trip.t_id }}')">Join Trip As a Sharer</button>
-                        </form>
+                        </form> -->
                     </div>
                 {% endfor %}
             </div>

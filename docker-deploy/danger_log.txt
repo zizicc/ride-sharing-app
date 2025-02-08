@@ -1,0 +1,53 @@
+# Security Issues
+
+### What if a passenger or driver pretends to be someone else?
+
+* A driver registers under a fake identity and accepts rides.
+* A hacker steals login credentials and books a ride under another person’s account.
+
+How to fix?
+
+* Use identity verification (driver’s license, selfie validation) for drivers.
+* Implement multi-factor authentication (MFA) for high-risk actions.
+
+### What if a user cancels or modifies a trip in an inappropriate way?
+
+* A passenger cancels a shared ride last minute, affecting other passengers.
+* A driver completes the rides before the destination.
+
+How to fix?
+* Constrain last-minute cancellations.
+* A driver cannot complete the rides before the destination.
+
+# Resilience Issues
+
+### What if multiple passengers try to join a shared ride at the same time?
+* More passengers may be accepted than the car’s capacity.
+* A shared ride may be overbooked if two people take the last seat at the same time.
+* Some passengers may see an available ride but get rejected due to high demand.
+
+How to fix?
+* Use atomic database transactions to prevent overbooking.
+* Display real-time seat availability and refresh often.
+* Reserve a seat for a passenger only after they confirm the ride.
+
+# Scalability Issues
+
+### What if ride demand increases in a city?
+
+* More drivers are needed, but new drivers take time to onboard.
+* Passengers experience long wait times.
+* The app may show incorrect ETAs due to driver shortages.
+
+How to fix?
+* Send driver recruitment alerts when demand is high.
+* Show realistic ETAs based on current traffic and driver availability.
+
+### What if a large event happens, and traffic is high?
+
+* Too many ride requests at once, slowing down the system.
+* Passengers get assigned to far-away drivers, increasing wait time.
+
+How to fix?
+* Temporarily prioritize group rides to move more passengers efficiently.
+* Allocate drivers strategically based on live traffic conditions.

@@ -21,7 +21,7 @@
         </div>
         <div class="form-group">
             <label>Special Info:</label>
-            <textarea name="special_info" class="form-control">{{ vehicle.special_info }}</textarea>
+            <input type="text" name="additional_info" class="form-control" value="{{ vehicle.additional_info }}">
         </div>
         <button type="submit" class="btn btn-primary mt-2">Save Changes</button>
     </form>

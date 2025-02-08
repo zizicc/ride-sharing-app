@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['web','localhost','vcm-45974.vm.duke.edu', '0.0.0.0','vcm-45811.vm.duke.edu','127.0.0.1']
 
-CSRF_TRUSTED_ORIGINS = ['http://vcm-45974.vm.duke.edu:8000','http://vcm-45811.vm.duke.edu:8000']
+CSRF_TRUSTED_ORIGINS = ['http://web:8000','http://localhost:8000','http://vcm-45974.vm.duke.edu:8000', 'http://0.0.0.0:8000','http://vcm-45811.vm.duke.edu:8000','http://127.0.0.1:8000']
 
 
 # Application definition

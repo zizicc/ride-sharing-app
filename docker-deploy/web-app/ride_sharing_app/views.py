@@ -78,6 +78,13 @@ def register_driver(request):
 
         if not all([license_number, vehicle_type, license_plate, max_passengers]):
             return render(request, "register_driver.html", {"error": "All fields except additional info are required."})
+        
+        if DriverProfile.objects.filter(license_number=license_number).exists():
+            return render(request, "register_driver.html", {"error": "This license number is already registered."})
+
+        if Vehicle.objects.filter(license_plate=license_plate).exists():
+            return render(request, "register_driver.html", {"error": "This license plate is already in use."})
+
 
         user_profile.role = 'driver'
         user_profile.is_driver = True
@@ -266,11 +273,6 @@ def edit_license(request):
         return redirect("driver_profile")
 
     return render(request, "driver/edit_license.html", {"driver_profile": driver_profile})
-    
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import Trip, TripUsers
 
 @login_required
 def start_trip(request):
@@ -322,8 +324,16 @@ def start_trip(request):
 @login_required
 def search_trips(request):
 
-    trips = Trip.objects.filter(t_status='open')
-    # trips = Trip.objects.all()
+    try:
+        # 获取当前登录用户的 Vehicle
+        driver_profile = DriverProfile.objects.get(user=request.user)
+        vehicle = Vehicle.objects.get(driver=driver_profile)
+    except (DriverProfile.DoesNotExist, Vehicle.DoesNotExist):
+        # 如果当前用户不是司机，或者没有车辆，不返回任何行程
+        return render(request, "driver/search.html", {"open_trips": [], "locations": range(1, 21)})
+
+    # 获取所有符合要求的 Trip
+    trips = Trip.objects.filter(t_status='open', t_shareno__lte=vehicle.max_passengers)
     
     if request.method == "POST":
 
@@ -351,26 +361,7 @@ def search_trips(request):
             trips = trips.filter(t_arrival_date_time__gte=start_time)
         elif end_time:
             trips = trips.filter(t_arrival_date_time__lte=end_time)
-        # if start_time_str and end_time_str:
-        #     try:
-        #         start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
-        #         end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-        #         trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
-        #     except ValueError:
-        #         pass
-        # elif start_time_str:
-        #     try:
-        #         start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
-        #         trips = trips.filter(t_arrival_date_time__gte=start_time)
-        #     except ValueError:
-        #         pass
-        # elif end_time_str:
-        #     try:
-        #         end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-        #         trips = trips.filter(t_arrival_date_time__lte=end_time)
-        #     except ValueError:
-        #         pass
-        
+       
 
         if customer_num:
             try:
@@ -498,24 +489,19 @@ def mark_trip_complete(request, trip_id):
 
 @login_required
 def search_passenger(request):
-
-    # trips = Trip.objects.filter(t_status='open')
     trips = Trip.objects.filter(t_status='open', t_isshareornot=True)
-    # trips = Trip.objects.all()
-    
-    if request.method == "POST":
 
+    # Filtering logic for search criteria...
+    if request.method == "POST":
         arrival_address = request.POST.get("arrivalAddress", "").strip()
-        start_time_str   = request.POST.get("startTime", "").strip()
-        end_time_str     = request.POST.get("endTime", "").strip()
-        customer_num     = request.POST.get("customerNum", "").strip()
-        vehicle_type     = request.POST.get("v_type", "").strip()
-        special_info     = request.POST.get("v_specialInfo", "").strip()
-        
+        start_time_str = request.POST.get("startTime", "").strip()
+        end_time_str = request.POST.get("endTime", "").strip()
+        customer_num = request.POST.get("customerNum", "").strip()
+        vehicle_type = request.POST.get("v_type", "").strip()
+        special_info = request.POST.get("v_specialInfo", "").strip()
 
         if arrival_address:
             trips = trips.filter(t_locationid=arrival_address)
-        
 
         def parse_datetime_local(dt_str):
             return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M") if dt_str else None
@@ -530,37 +516,13 @@ def search_passenger(request):
         elif end_time:
             trips = trips.filter(t_arrival_date_time__lte=end_time)
 
-        # if start_time_str and end_time_str:
-        #     try:
-        #         start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
-        #         end_time   = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-        #         trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
-        #     except ValueError:
-
-        #         pass
-        # elif start_time_str:
-        #     try:
-        #         start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
-        #         trips = trips.filter(t_arrival_date_time__gte=start_time)
-        #     except ValueError:
-        #         pass
-        # elif end_time_str:
-        #     try:
-        #         end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-        #         trips = trips.filter(t_arrival_date_time__lte=end_time)
-        #     except ValueError:
-        #         pass
-        
-
         if customer_num:
             try:
                 num = int(customer_num)
                 trips = trips.filter(t_shareno=num)
             except ValueError:
                 pass
-        
 
-        
         if vehicle_type or special_info:
             vehicles = Vehicle.objects.all()
             if vehicle_type:
@@ -569,17 +531,103 @@ def search_passenger(request):
                 vehicles = vehicles.filter(additional_info__icontains=special_info)
             vehicle_ids = vehicles.values_list("id", flat=True)
             trips = trips.filter(t_vehicleid__in=vehicle_ids)
+
     vehicle_ids = trips.values_list('t_vehicleid', flat=True)
     vehicles = Vehicle.objects.filter(id__in=vehicle_ids)
     vehicle_map = {v.id: v for v in vehicles}
+
     for trip in trips:
         trip.vehicle = vehicle_map.get(trip.t_vehicleid)
 
-    locations = range(1, 21) 
+    # Fetch trip-user relationships
+    trip_users = TripUsers.objects.filter(trip__in=trips).values_list('trip_id', 'user_id')
 
-    context = {"open_trips": trips, "locations": locations}
-    # context = {"open_trips": trips}
+    # Create a set of trips the current user is already part of
+    current_user_id = request.user.id
+    user_in_trip_map = {trip_id for trip_id, user_id in trip_users if user_id == current_user_id}
+
+    locations = range(1, 21)
+    context = {
+        "open_trips": trips,
+        "locations": locations,
+        "user_in_trip_map": user_in_trip_map,  # Pass this directly to template
+        "current_user_id": current_user_id,
+    }
     return render(request, "passenger/search.html", context)
+
+# @login_required
+# def search_passenger(request):
+
+#     # trips = Trip.objects.filter(t_status='open')
+#     trips = Trip.objects.filter(t_status='open', t_isshareornot=True)
+#     # trips = Trip.objects.all()
+    
+#     if request.method == "POST":
+
+#         arrival_address = request.POST.get("arrivalAddress", "").strip()
+#         start_time_str   = request.POST.get("startTime", "").strip()
+#         end_time_str     = request.POST.get("endTime", "").strip()
+#         customer_num     = request.POST.get("customerNum", "").strip()
+#         vehicle_type     = request.POST.get("v_type", "").strip()
+#         special_info     = request.POST.get("v_specialInfo", "").strip()
+        
+
+#         if arrival_address:
+#             trips = trips.filter(t_locationid=arrival_address)
+        
+
+#         def parse_datetime_local(dt_str):
+#             return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M") if dt_str else None
+
+#         start_time = parse_datetime_local(start_time_str)
+#         end_time = parse_datetime_local(end_time_str)
+
+#         if start_time and end_time:
+#             trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
+#         elif start_time:
+#             trips = trips.filter(t_arrival_date_time__gte=start_time)
+#         elif end_time:
+#             trips = trips.filter(t_arrival_date_time__lte=end_time)       
+
+#         if customer_num:
+#             try:
+#                 num = int(customer_num)
+#                 trips = trips.filter(t_shareno=num)
+#             except ValueError:
+#                 pass
+        
+
+        
+#         if vehicle_type or special_info:
+#             vehicles = Vehicle.objects.all()
+#             if vehicle_type:
+#                 vehicles = vehicles.filter(vehicle_type__icontains=vehicle_type)
+#             if special_info:
+#                 vehicles = vehicles.filter(additional_info__icontains=special_info)
+#             vehicle_ids = vehicles.values_list("id", flat=True)
+#             trips = trips.filter(t_vehicleid__in=vehicle_ids)
+#     vehicle_ids = trips.values_list('t_vehicleid', flat=True)
+#     vehicles = Vehicle.objects.filter(id__in=vehicle_ids)
+#     vehicle_map = {v.id: v for v in vehicles}
+#     for trip in trips:
+#         trip.vehicle = vehicle_map.get(trip.t_vehicleid)
+
+
+
+#     trip_users = TripUsers.objects.filter(trip__in=trips).values_list('trip_id', 'user_id') 
+#     trip_user_map = {} 
+#     for trip_id, user_id in trip_users: 
+#         if trip_id not in trip_user_map: 
+#             trip_user_map[trip_id] = set() 
+#         trip_user_map[trip_id].add(user_id) 
+#     locations = range(1, 21) 
+#     context = { 
+#         "open_trips": trips, 
+#         "locations": locations, 
+#         "trip_user_map": trip_user_map, 
+#         "current_user_id": request.user.id, # 传递当前用户ID 
+#     }
+#     return render(request, "passenger/search.html", context)
 
 @login_required
 def join_trip_as_sharer(request, trip_id):

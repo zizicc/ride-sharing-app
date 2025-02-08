@@ -5,7 +5,6 @@
 {% block content %}
 <div class="container">
     <h2>Driver Profile</h2>
-    <p>View and update your driver profile information.</p>
 
     <!-- 显示司机基本信息 -->
     <div class="card mt-3">
@@ -15,15 +14,17 @@
             <p><strong>Email:</strong> {{ user.email }}</p>
             
             <!-- 🚀 显示 License Number -->
-            <p><strong>License Number:</strong> {{ driver_profile.license_number }}</p>
+            <p><strong>License Number:</strong> {{ driver.license_number }}</p>
 
             <!-- 🚀 修改个人信息按钮 -->
             <a href="{% url 'edit_driver_profile' %}" class="btn btn-primary mt-2">Edit Profile</a>
-
+            <br>
             <!-- 🚀 修改 License Number 按钮 -->
             <a href="{% url 'edit_license' %}" class="btn btn-secondary mt-2">Edit License Number</a>
         </div>
     </div>
+
+    <br>
 
     <!-- 显示车辆信息 -->
     {% if vehicle %}
@@ -33,7 +34,7 @@
             <p><strong>Vehicle Type:</strong> {{ vehicle.vehicle_type }}</p>
             <p><strong>License Plate:</strong> {{ vehicle.license_plate }}</p>
             <p><strong>Max Passengers:</strong> {{ vehicle.max_passengers }}</p>
-            <p><strong>Special Info:</strong> {{ vehicle.special_info }}</p>
+            <p><strong>Special Info:</strong> {{ vehicle.additional_info }}</p>
 
             <!-- 修改车辆信息按钮 -->
             <a href="{% url 'edit_vehicle' %}" class="btn btn-primary mt-2">Edit Vehicle Info</a>

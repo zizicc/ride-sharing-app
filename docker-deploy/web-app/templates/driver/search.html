@@ -4,7 +4,8 @@
 
 {% block content %}
     <div class="container">
-        <h2 class="text-center">Search Open Rides</h2>
+        <h2 class="text-center">Search Open Trips</h2>
+        <h3 class="text-center">The search results have already filtered by vehicle capacity.</h3>
 
         <form action="{% url 'driverSearch' %}" method="POST" class="search-form">
             {% csrf_token %}
