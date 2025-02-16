@@ -12,7 +12,6 @@
             padding: 0;
         }
 
-        /* 头部导航 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -69,9 +68,8 @@
             font-weight: bold;
         }
 
-        /* 内容区域 */
         .content {
-            display: none;  /* 默认隐藏所有内容 */
+            display: none;  
             background-color: white;
             padding: 20px;
             border-radius: 8px;
@@ -81,10 +79,9 @@
         }
 
         .content.active {
-            display: block;  /* 只有 active 的内容显示 */
+            display: block; 
         }
 
-        /* 表单样式 */
         .form-group {
             display: flex;
             align-items: center;
@@ -132,13 +129,11 @@
 </head>
 <body>
 
-    <!-- 头部 -->
     <div class="header">
         <h1>Hi, driver zi!</h1>
         <button>Log Out</button>
     </div>
 
-    <!-- 切换栏 -->
     <div class="menu">
         <div class="tab active" data-target="searchRides">Search Open Rides</div>
         <div class="tab" data-target="ongoingRides">Ongoing</div>
@@ -146,7 +141,6 @@
         <div class="tab" data-target="myDriverProfile">My Driver Profile</div>
     </div>
     
-    <!-- 搜索行程表单 (默认显示) -->
     <div class="content active" id="searchRides">
         <form action="#" method="POST">
             <div class="form-group">
@@ -175,40 +169,35 @@
         <div class="open-trips">Below are all the open rides you want!</div>
     </div>
     
-    <!-- Ongoing 内容 -->
     <div class="content" id="ongoingRides">
         <h2>CURRENT TRIP</h2>
         <p>Here is your ongoing ride.</p>
         
     </div>
 
-    <!-- My Drive 内容 -->
     <div class="content" id="myDrive">
         <h2>My Drive</h2>
         <p>Manage your driving schedule and history.</p>
     </div>
 
-    <!-- My Driver Profile 内容 -->
     <div class="content" id="myDriverProfile">
         <h2>My Driver Profile</h2>
         <p>View and update your driver profile information.</p>
     </div>
 
     <script>
-        // 监听 tab 点击，切换内容
+ 
         document.querySelectorAll('.menu .tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                // 移除所有 tab 的 active 状态
+  
                 document.querySelectorAll('.menu .tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
 
-                // 获取对应的内容区域 ID
+
                 let targetId = tab.getAttribute('data-target');
 
-                // 隐藏所有内容区域
                 document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
 
-                // 显示选中的内容区域
                 document.getElementById(targetId).classList.add('active');
             });
         });

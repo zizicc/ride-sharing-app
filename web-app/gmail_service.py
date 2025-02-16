@@ -7,13 +7,13 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 获取当前文件所在目录
-CREDENTIALS_PATH = os.path.join(BASE_DIR, "credentials.json")  # 绝对路径
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  
+CREDENTIALS_PATH = os.path.join(BASE_DIR, "credentials.json")  
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 def authenticate_gmail():
-    print("Authenticating Gmail API...")  # 输出日志
+    print("Authenticating Gmail API...")  
     creds = None
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
@@ -36,7 +36,7 @@ def send_test_email():
     service = authenticate_gmail()
     
     message = MIMEMultipart()
-    message['to'] = "dwarfhamsterzhang@gmail.com"  # 替换成你的邮箱
+    message['to'] = "dwarfhamsterzhang@gmail.com"  
     message['subject'] = "Test Email from Gmail API"
     message.attach(MIMEText("This is a test email sent via Gmail API.", 'plain'))
 

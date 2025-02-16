@@ -23,7 +23,7 @@ User = get_user_model()
 # Views
 @login_required
 def home(request):
-    """ 根据用户角色跳转到对应的 Profile 页面 """
+
     user_profile = request.user.userprofile
 
     if user_profile.role == 'driver':
@@ -31,7 +31,6 @@ def home(request):
     elif user_profile.role == 'passenger':
         return redirect('passenger_profile')
 
-    # 防止异常情况，确保不会进入无限循环
     return redirect('passenger_profile')
  
 def register(request):
@@ -110,17 +109,14 @@ def register_driver(request):
 
 @login_required
 def driver_profile(request):
-    """ 司机个人信息页面 """
+
     user_profile = request.user.userprofile
 
-    # 确保用户是司机
     if not user_profile.is_driver():
         return redirect('passenger_profile')
 
-    # **正确查询 `DriverProfile`，使用 `request.user`**
     driver = DriverProfile.objects.filter(user=request.user).first()
 
-    # **确保 `Vehicle` 查询的是 `DriverProfile`**
     vehicle = None
     if driver:
         vehicle = Vehicle.objects.filter(driver=driver).first()
@@ -132,10 +128,9 @@ def driver_profile(request):
 
 @login_required
 def passenger_profile(request):
-    """ 乘客个人信息页面 """
+
     user_profile = request.user.userprofile
 
-    # 确保只有乘客能访问
     if not user_profile.is_passenger():
         return redirect('driver_profile')
 
@@ -143,18 +138,15 @@ def passenger_profile(request):
 
 @login_required
 def edit_vehicle(request):
-    user_profile = request.user.userprofile  # 获取 UserProfile
+    user_profile = request.user.userprofile  
 
-    # 确保用户是司机，否则跳转到乘客页面
     if not user_profile.is_driver():
         return redirect('passenger_profile')
 
-    # 获取 DriverProfile
     driver = DriverProfile.objects.filter(user=request.user).first()
     if not driver:
-        return redirect('register_driver')  # 司机信息缺失时跳转到注册司机页面
+        return redirect('register_driver') 
 
-    # 获取车辆信息
     vehicle = Vehicle.objects.filter(driver=driver).first()
 
     if request.method == "POST":
@@ -164,14 +156,12 @@ def edit_vehicle(request):
         additional_info = request.POST.get("additional_info")
 
         if vehicle:
-            # 更新车辆信息
             vehicle.vehicle_type = vehicle_type
             vehicle.license_plate = license_plate
             vehicle.max_passengers = max_passengers
             vehicle.additional_info = additional_info
             vehicle.save()
         else:
-            # 创建新车辆信息
             Vehicle.objects.create(
                 driver=driver,
                 vehicle_type=vehicle_type,
@@ -186,14 +176,12 @@ def edit_vehicle(request):
 
 @login_required
 def edit_passenger(request):
-    """ 允许乘客编辑个人信息 """
     user = request.user
 
     if request.method == 'POST':
         new_username = request.POST.get('username')
         new_email = request.POST.get('email')
 
-        # 确保用户名和邮箱不为空
         if not new_username or not new_email:
             messages.error(request, "Username and email cannot be empty.")
             return redirect('edit_passenger')
@@ -225,19 +213,16 @@ def switch_role(request):
     
 @login_required
 def edit_driver_profile(request):
-    """ 司机修改个人信息 """
     user = request.user
 
     if request.method == "POST":
         new_username = request.POST.get("username")
         new_email = request.POST.get("email")
 
-        # 确保用户名和邮箱不能为空
         if not new_username or not new_email:
             messages.error(request, "Username and email cannot be empty.")
             return redirect("edit_driver_profile")
 
-        # 更新用户信息
         user.username = new_username
         user.email = new_email
         user.save()
@@ -249,10 +234,8 @@ def edit_driver_profile(request):
 
 @login_required
 def edit_license(request):
-    """ 司机修改 License Number """
     user = request.user
 
-    # 确保当前用户有 DriverProfile
     driver_profile = DriverProfile.objects.filter(user=user).first()
     if not driver_profile:
         return redirect("driver_profile")
@@ -260,12 +243,10 @@ def edit_license(request):
     if request.method == "POST":
         new_license = request.POST.get("license_number")
 
-        # 确保 License Number 不能为空
         if not new_license:
             messages.error(request, "License number cannot be empty.")
             return redirect("edit_license")
 
-        # 更新 License Number
         driver_profile.license_number = new_license
         driver_profile.save()
         messages.success(request, "License number updated successfully.")
@@ -276,10 +257,8 @@ def edit_license(request):
 
 @login_required
 def start_trip(request):
-    """ 乘客发起 Trip 并自动加入 TripUsers """
     user_profile = request.user.userprofile
 
-    # 只有乘客可以发起 Trip
     if not user_profile.is_passenger():
         return redirect('driver_profile')
 
@@ -287,9 +266,8 @@ def start_trip(request):
         location_id = request.POST.get("location")
         arrival_date_time = request.POST.get("arrival_date_time")
         shareno = request.POST.get("shareno")
-        is_shareornot = request.POST.get("is_shareornot") == "on"  # 复选框转换布尔值
+        is_shareornot = request.POST.get("is_shareornot") == "on"  
 
-        # 校验 location_id 是否在 1-20 范围内
         try:
             location_id = int(location_id)
             if location_id < 1 or location_id > 20:
@@ -298,12 +276,10 @@ def start_trip(request):
             messages.error(request, "Invalid location. Please select a number between 1 and 20.")
             return redirect("start_trip")
 
-        # 确保所有字段不为空
         if not arrival_date_time or not shareno:
             messages.error(request, "All fields are required.")
             return redirect("start_trip")
 
-        # 创建 Trip
         new_trip = Trip.objects.create(
             t_locationid=location_id,
             t_arrival_date_time=arrival_date_time,
@@ -311,13 +287,12 @@ def start_trip(request):
             t_isshareornot=is_shareornot
         )
 
-        # 乘客自动加入 TripUsers
         TripUsers.objects.create(trip=new_trip, user=request.user,passenger_number=shareno)
 
         messages.success(request, "Trip successfully created and you have joined the trip!")
         return redirect("passenger_profile")
 
-    locations = range(1, 21)  # 生成 1-20 的整数列表
+    locations = range(1, 21) 
     return render(request, "passenger/start_trip.html", {"locations": locations})
 
 
@@ -325,14 +300,13 @@ def start_trip(request):
 def search_trips(request):
 
     try:
-        # 获取当前登录用户的 Vehicle
+       
         driver_profile = DriverProfile.objects.get(user=request.user)
         vehicle = Vehicle.objects.get(driver=driver_profile)
     except (DriverProfile.DoesNotExist, Vehicle.DoesNotExist):
-        # 如果当前用户不是司机，或者没有车辆，不返回任何行程
+
         return render(request, "driver/search.html", {"open_trips": [], "locations": range(1, 21)})
 
-    # 获取所有符合要求的 Trip
     trips = Trip.objects.filter(t_status='open', t_shareno__lte=vehicle.max_passengers)
     
     if request.method == "POST":
@@ -386,7 +360,7 @@ def search_trips(request):
     for trip in trips:
         trip.vehicle = vehicle_map.get(trip.t_vehicleid)
 
-    locations = range(1, 21)  # 生成 1-20 的整数列表
+    locations = range(1, 21)  
 
     context = {"open_trips": trips, "locations": locations}
     return render(request, "driver/search.html", context)
@@ -408,13 +382,10 @@ def join_trip(request, trip_id):
         except Vehicle.DoesNotExist:
             return redirect('driverSearch')
         
-        # **获取所有乘客 ID**
         passenger_ids = TripUsers.objects.filter(trip=trip).values_list('user_id', flat=True)
 
-        # **根据 ID 获取所有乘客信息**
         passengers = User.objects.filter(id__in=passenger_ids)
 
-        # **发送邮件给所有乘客**
         subject = "Trip Confirmation"
         body = f"""
         Dear Passenger,
@@ -555,80 +526,6 @@ def search_passenger(request):
     }
     return render(request, "passenger/search.html", context)
 
-# @login_required
-# def search_passenger(request):
-
-#     # trips = Trip.objects.filter(t_status='open')
-#     trips = Trip.objects.filter(t_status='open', t_isshareornot=True)
-#     # trips = Trip.objects.all()
-    
-#     if request.method == "POST":
-
-#         arrival_address = request.POST.get("arrivalAddress", "").strip()
-#         start_time_str   = request.POST.get("startTime", "").strip()
-#         end_time_str     = request.POST.get("endTime", "").strip()
-#         customer_num     = request.POST.get("customerNum", "").strip()
-#         vehicle_type     = request.POST.get("v_type", "").strip()
-#         special_info     = request.POST.get("v_specialInfo", "").strip()
-        
-
-#         if arrival_address:
-#             trips = trips.filter(t_locationid=arrival_address)
-        
-
-#         def parse_datetime_local(dt_str):
-#             return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M") if dt_str else None
-
-#         start_time = parse_datetime_local(start_time_str)
-#         end_time = parse_datetime_local(end_time_str)
-
-#         if start_time and end_time:
-#             trips = trips.filter(t_arrival_date_time__range=(start_time, end_time))
-#         elif start_time:
-#             trips = trips.filter(t_arrival_date_time__gte=start_time)
-#         elif end_time:
-#             trips = trips.filter(t_arrival_date_time__lte=end_time)       
-
-#         if customer_num:
-#             try:
-#                 num = int(customer_num)
-#                 trips = trips.filter(t_shareno=num)
-#             except ValueError:
-#                 pass
-        
-
-        
-#         if vehicle_type or special_info:
-#             vehicles = Vehicle.objects.all()
-#             if vehicle_type:
-#                 vehicles = vehicles.filter(vehicle_type__icontains=vehicle_type)
-#             if special_info:
-#                 vehicles = vehicles.filter(additional_info__icontains=special_info)
-#             vehicle_ids = vehicles.values_list("id", flat=True)
-#             trips = trips.filter(t_vehicleid__in=vehicle_ids)
-#     vehicle_ids = trips.values_list('t_vehicleid', flat=True)
-#     vehicles = Vehicle.objects.filter(id__in=vehicle_ids)
-#     vehicle_map = {v.id: v for v in vehicles}
-#     for trip in trips:
-#         trip.vehicle = vehicle_map.get(trip.t_vehicleid)
-
-
-
-#     trip_users = TripUsers.objects.filter(trip__in=trips).values_list('trip_id', 'user_id') 
-#     trip_user_map = {} 
-#     for trip_id, user_id in trip_users: 
-#         if trip_id not in trip_user_map: 
-#             trip_user_map[trip_id] = set() 
-#         trip_user_map[trip_id].add(user_id) 
-#     locations = range(1, 21) 
-#     context = { 
-#         "open_trips": trips, 
-#         "locations": locations, 
-#         "trip_user_map": trip_user_map, 
-#         "current_user_id": request.user.id, # 传递当前用户ID 
-#     }
-#     return render(request, "passenger/search.html", context)
-
 @login_required
 def join_trip_as_sharer(request, trip_id):
     trip = get_object_or_404(Trip, t_id=trip_id)
@@ -659,7 +556,6 @@ def myOpenTrip_passenger(request):
     trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
     trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open").order_by("t_arrival_date_time")
 
-    # 预计算所有 trip 的 ownPassengerNum
     trip_user_data = {tu.trip_id: tu.passenger_number for tu in TripUsers.objects.filter(user=request.user)}
 
     if request.method == "POST":
@@ -669,16 +565,13 @@ def myOpenTrip_passenger(request):
 
         trip = get_object_or_404(Trip, t_id=trip_id)
 
-        # 确保当前用户有权限修改这个 trip
         trip_user = TripUsers.objects.filter(trip=trip, user=request.user).first()
         if not trip_user:
             return HttpResponse("You are not authorized to edit this trip.", status=403)
 
-        # 更新 trip 相关信息
         trip.t_locationid = request.POST.get("t_locationid")
         trip.t_arrival_date_time = request.POST.get("t_arrival_date_time")
 
-        # 计算新的 own_passenger_num
         past_own_passenger_num = trip_user.passenger_number
         new_own_passenger_num = request.POST.get("update_own_passenger_num")
 
@@ -688,56 +581,19 @@ def myOpenTrip_passenger(request):
         new_own_passenger_num = int(new_own_passenger_num)
         num_change = new_own_passenger_num - past_own_passenger_num
 
-        # ✅ 更新 `TripUsers` 表中的 passenger_number
         trip_user.passenger_number = new_own_passenger_num
         trip_user.save()
 
-        # ✅ 更新 `Trip` 表中的 `t_shareno`
         trip.t_shareno = (trip.t_shareno or 0) + num_change
         trip.save()
 
-        # 🔄 避免重复提交问题，重定向到 GET
         return redirect('myOpenTrip_passenger')
 
-    # 在 trip 对象中存储 own_passenger_num，方便模板访问
     for trip in trips:
         trip.own_passenger_num = trip_user_data.get(trip.t_id, 0)
 
     return render(request, "passenger/myOpenTrip.html", {"trips": trips})
 
-
-
-# @login_required
-# def myOpenTrip_passenger(request):
-
-#     # trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
-#     # trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open")
-#     trip_ids = TripUsers.objects.filter(user=request.user).values_list('trip_id', flat=True)
-#     trips = Trip.objects.filter(t_id__in=trip_ids, t_status="open").order_by("t_arrival_date_time")
-
-#     if request.method == "POST":
-#         trip_id = request.POST.get("trip_id")
-#         if not trip_id:
-#             return HttpResponse("Invalid request: trip_id is missing.", status=400)
-#         trip = get_object_or_404(Trip, t_id=trip_id)
-
-#         if not TripUsers.objects.filter(trip=trip, user=request.user).exists():
-#             return HttpResponse("You are not authorized to edit this trip.", status=403)
-
-#         trip.t_locationid = request.POST.get("t_locationid")
-#         trip.t_arrival_date_time = request.POST.get("t_arrival_date_time")
-#         # trip.t_shareno = request.POST.get("t_shareno")
-#         # get past passenger number
-#         trip_user = TripUsers.objects.filter(trip=trip, user=request.user).first()
-#         past_passenger_num = trip_user.passenger_number if trip_user else 0  
-#         num_change = int(request.POST.get("t_shareno")) - past_passenger_num
-#         trip.t_shareno = (trip.t_shareno or 0) + num_change
-#         print("DEBUG: POST DATA ->", request.POST) 
-
-#         trip.save()
-#         # return redirect('myOpenTrip_passenger') 
-
-#     return render(request, "passenger/myOpenTrip.html", {"trips": trips, "ownPassengerNum": past_passenger_num})
 
 @login_required
 def myConfirmedTrip_passenger(request):
@@ -806,8 +662,8 @@ def gmail_authenticate():
         else:
             # This credentials.json is the credential you download from Google API portal when you 
             # created the OAuth 2.0 Client IDs
-            BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 获取当前文件所在目录
-            CREDENTIALS_PATH = os.path.join(BASE_DIR, "credentials.json")  # 绝对路径
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
+            CREDENTIALS_PATH = os.path.join(BASE_DIR, "credentials.json") 
             flow = InstalledAppFlow.from_client_secrets_file(
                 CREDENTIALS_PATH, SCOPES)
             # this is the redirect URI which should match your API setting, you can 
@@ -839,11 +695,9 @@ def send_message(service, sender, to, subject, msg_html):
 
 
 def send_trip_confirmation_email_with_gmail_api(trip):
-    """ 通过 Gmail API 发送 Trip 确认邮件给所有乘客 """
     service = gmail_authenticate()
 
 
-    # 获取该 trip 所有乘客的邮箱
     trip_users = TripUsers.objects.filter(trip=trip)
     recipient_emails = [user.user.email for user in trip_users if user.user.email]
 

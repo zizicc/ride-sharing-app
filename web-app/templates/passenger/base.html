@@ -12,7 +12,6 @@
             padding: 0;
         }
 
-        /* 头部导航 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -44,7 +43,6 @@
             background-color: #ddd;
         }
 
-        /* 选项卡菜单 */
         .menu {
             display: flex;
             justify-content: space-around;
@@ -69,9 +67,6 @@
             font-weight: bold;
         }
 
-
-
-        /* 内容区域 */
         .content {
             background-color: white;
             padding: 20px;
@@ -84,7 +79,6 @@
 </head>
 <body>
 
-    <!-- 头部 -->
     <div class="header">
         <h1 class="mt-5 mb-3">Welcome, {{ request.user.username }}!</h1>
         <form method="post" action="{% url 'logout' %}">
@@ -93,7 +87,6 @@
         </form>
     </div>
 
-    <!-- 菜单导航 -->
     <div class="menu">
         <a href="{% url 'start_trip' %}" class="tab">Start a Trip</a>
         <a href="{% url 'search_passenger' %}" class="tab">Search Open Trips</a>
@@ -103,7 +96,6 @@
         <a href="{% url 'passenger_profile' %}" class="tab">My Passenger Profile</a>
     </div>
 
-    <!-- 主要内容区域 -->
     <div class="content">
         {% block content %}{% endblock %}
     </div>

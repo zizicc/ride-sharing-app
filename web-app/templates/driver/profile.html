@@ -6,27 +6,22 @@
 <div class="container">
     <h2>Driver Profile</h2>
 
-    <!-- 显示司机基本信息 -->
     <div class="card mt-3">
         <div class="card-body">
             <h5 class="card-title">User Information</h5>
             <p><strong>Username:</strong> {{ user.username }}</p>
             <p><strong>Email:</strong> {{ user.email }}</p>
             
-            <!-- 🚀 显示 License Number -->
             <p><strong>License Number:</strong> {{ driver.license_number }}</p>
 
-            <!-- 🚀 修改个人信息按钮 -->
             <a href="{% url 'edit_driver_profile' %}" class="btn btn-primary mt-2">Edit Profile</a>
             <br>
-            <!-- 🚀 修改 License Number 按钮 -->
             <a href="{% url 'edit_license' %}" class="btn btn-secondary mt-2">Edit License Number</a>
         </div>
     </div>
 
     <br>
 
-    <!-- 显示车辆信息 -->
     {% if vehicle %}
     <div class="card mt-3">
         <div class="card-body">
@@ -36,7 +31,6 @@
             <p><strong>Max Passengers:</strong> {{ vehicle.max_passengers }}</p>
             <p><strong>Special Info:</strong> {{ vehicle.additional_info }}</p>
 
-            <!-- 修改车辆信息按钮 -->
             <a href="{% url 'edit_vehicle' %}" class="btn btn-primary mt-2">Edit Vehicle Info</a>
         </div>
     </div>
@@ -44,7 +38,6 @@
     <p class="text-warning mt-3">No vehicle information found.</p>
     {% endif %}
 
-    <!-- 切换角色按钮 -->
     <div class="mt-3">
         <a href="{% url 'switch_role' %}" class="btn btn-warning">Switch to Passenger</a>
     </div>
